@@ -26,23 +26,13 @@ def update_pars_and_pather(pars, pather, filename, **kwargs):
 def read_tensor_file(prefix="", pars={}, pather=None, filename=None, **kwargs):
     pars, pather = update_pars_and_pather(pars, pather, filename, **kwargs)
     path = pather.generate_path(prefix, extension=".p")
-    rename = False # TODO should be removed once unnecessary
     if not os.path.isfile(path):
-        # TODO remove this once all data files use the new naming
-        # scheme.
-        path = pather.generate_path_old(prefix, extension=".p")
-        rename = True
-        if not os.path.isfile(path):
-            # This is meant to be caught by the caller.
-            raise RuntimeError
+        # This is meant to be caught by the caller.
+        raise RuntimeError
     print("Reading %s from %s"%(prefix, path))
     f = open(path, 'rb')
     res = pickle.load(f)
     f.close()
-    # TODO This rewrites the file with a new style name. Remove this
-    # when it's not needed anymore.
-    if rename:
-        write_tensor_file(data=res, prefix=prefix, pars=pars, filename=filename)
     return res
 
 

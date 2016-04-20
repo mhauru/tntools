@@ -25,22 +25,6 @@ class PathFinder:
             name = self.prefix + midfix + "_-_" + postfix + extension
         return name
 
-    # TODO this method is incorrect, but kept to maintain backwards
-    # compatibility. Remove this once all data files are using the new
-    # naming system.
-    def generate_path_old(self, midfix, extension="", **kwargs):
-        warnings.warn("Using the deprecated file naming scheme.")
-        pars = self.pars.copy()
-        pars.update(kwargs)
-        postfix = type(self).dict_to_postfix(pars, self.ignore_pars)
-        name = self.prefix + midfix + "_-_" + postfix + extension
-        if len(name)>50:
-            # Hash the postfix if the name is too long
-            bname = name.encode('UTF-8')
-            postfix = hashlib.md5(bname).hexdigest()
-            name = self.prefix + midfix + "_-_" + postfix + extension
-        return name
-
     @staticmethod
     def dict_to_postfix(d, ignore_pars=[]):
         d = sorted(d.items())
