@@ -91,3 +91,85 @@ def get_initial_sixvertex_tensor(pars):
         T_0 = Tensor.from_ndarray(T_0)
     return T_0
 
+
+def get_KW_tensor(pars):
+    eye = np.eye(2, dtype=np.complex_)
+    ham = hamiltonians["ising"](pars)
+    B = np.exp(-pars["beta"] * ham)
+    H = np.array([[1,1], [1,-1]], dtype=np.complex_)/np.sqrt(2)
+    y_trigged = np.ndarray((2,2,2), dtype=np.complex_)
+    y_trigged[:,:,0] = eye
+    y_trigged[:,:,1] = sigma('y')
+    D_sigma = np.sqrt(2) * np.einsum('ab,abi,ic,ad,adk,kc->abcd',
+                                     B, y_trigged, H,
+                                     B, y_trigged.conjugate(), H)
+
+    u = symmetry_bases["ising"]
+    u_dg = u.T.conjugate()
+    D_sigma = scon((D_sigma, u, u, u_dg, u_dg),
+                   ([1,2,3,4], [-1,1], [-2,2], [3,-3], [4,-4]))
+    if pars["symmetry_tensors"]:
+        D_sigma = TensorZ2.from_ndarray(D_sigma, shape=[[1,1]]*4,
+                                        qhape=[[0,1]]*4, dirs=[1,1,-1,-1])
+    else:
+        D_sigma = Tensor.from_ndarray(D_sigma, dirs=[1,1,-1,-1])
+    return D_sigma
+
+
+def get_KW_unitary(pars):
+    eye = np.eye(2, dtype=np.complex_)
+    CZ = Csigma_np("z")
+    U = scon((CZ,
+              R(np.pi/4, 'z'), R(np.pi/4, 'x'),
+              R(np.pi/4, 'y')),
+             ([-1,-2,5,6],
+              [-3,5], [3,6],
+              [-4,3]))
+    u = symmetry_bases["ising"]
+    u_dg = u.T.conjugate()
+    U = scon((U, u, u_dg, u_dg, u),
+             ([1,2,3,4], [-1,1], [-2,2], [3,-3], [4,-4]))
+    U *= -1j
+    if pars["symmetry_tensors"]:
+        U = TensorZ2.from_ndarray(U, shape=[[1,1]]*4, qhape=[[0,1]]*4,
+                                  dirs=[1,1,-1,-1])
+    else:
+        U = Tensor.from_ndarray(U, dirs=[1,1,1,-1,-1,-1])
+    return U
+
+
+def Csigma_np(sigma_str):
+    eye = np.eye(2, dtype=np.complex_)
+    CNOT = np.zeros((2,2,2,2), dtype=np.complex_)
+    CNOT[:,0,:,0] = eye
+    CNOT[:,1,:,1] = sigma(sigma_str)
+    return CNOT
+
+
+def dim2_projector_np(i,j):
+    xi, xj = [np.array([[1,0]]) if n == 0 else np.array([[0,1]])
+              for n in (i, j)]
+    P = np.kron(xi.T, xj)
+    return P
+
+
+def sigma(c):
+    if c=="x":
+        res = np.array([[ 0, 1],
+                        [ 1, 0]], dtype=np.complex_)
+    elif c=="y":
+        res = np.array([[ 0j,-1j],
+                        [ 1j, 0j]], dtype=np.complex_)
+    elif c=="z":
+        res = np.array([[ 1, 0],
+                        [ 0,-1]], dtype=np.complex_)
+    return res
+
+
+def R(alpha, c):
+    s = sigma(c)
+    eye = np.eye(2, dtype=np.complex_)
+    res = np.cos(alpha)*eye + 1j*np.sin(alpha)*s
+    return res
+
+
