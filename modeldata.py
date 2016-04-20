@@ -141,7 +141,6 @@ def get_primary_data(maxi, pars, alpha, qnum=None, **kwargs):
             grouped_dims.append(dim)
             grouped_spins.append(spin)
             grouped_degs.append(deg)
-
     return grouped_dims, grouped_spins, grouped_degs
 
 
@@ -154,6 +153,7 @@ def build_primas(prima_pairs):
     spins = []
     degs = []
     for left, right in prima_pairs:
+        # Virs refer to Virasoro characters.
         h, Virs_h = left
         hbar, Virs_hbar = right
         i_Virs_h = enumerate(Virs_h)
@@ -164,6 +164,20 @@ def build_primas(prima_pairs):
                 scaldims.append(h+i + hbar+j)
                 spins.append(h+i - hbar-j)
                 degs.append(deg)
+    # We make sure that values that are the same up to numerical errors
+    # are stored as exactly the same. This is necessary later, when
+    # sorting is done on these values.
+    for li in (scaldims, spins, degs):
+        past = set()
+        for i, el in enumerate(li):
+            for old_el in past:
+                if abs(el-old_el) < 1e-7:
+                    # The elements are considered the same and made
+                    # exactly equal.
+                    el = old_el
+                    break
+            past.add(el)
+            li[i] = el
     return scaldims, spins, degs
 
 
