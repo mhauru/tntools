@@ -45,6 +45,74 @@ def contract2x2_ndarray(T_list, vert_flip=False):
     return S
 
 
+def contract2x2x2(T_list):
+    """ Takes an iterable of rank 4 tensors and contracts a cube made
+    of them to a single rank 6 tensor. If only a single tensor is given
+    8 copies of the same tensor are used.
+    """
+    if isinstance(T_list, (np.ndarray, tensorcommon.TensorCommon)):
+        T = T_list
+        T_list = [T]*8
+    else:
+        T_list = list(T_list)
+    if type(T_list[0]) is np.ndarray:
+        return contract2x2x2_ndarray(T_list)
+    else:
+        return contract2x2x2_Tensor(T_list)
+
+
+def contract2x2x2_Tensor_flipped(T):
+    T2 = scon((T, T.conjugate()),
+              ([11,-21,-31,-41,-51,-61],
+               [11,-22,-32,-42,-52,-62]))
+    T4 = scon((T2, T2.conjugate()),
+              ([-11,-21,-31,-41,-51,-61,-71,-81,91,101],
+               [-12,-22,-32,-42,-52,-62,-72,-82,91,101]))
+    T8 = scon((T4, T4.conjugate()),
+              ([11,21,31,41,-51,-61,-71,-81,-91,-101,-111,-121,-131,-141,-151,-161],
+               [11,21,31,41,-52,-62,-72,-82,-92,-102,-112,-122,-132,-142,-152,-162]))
+    T8 = T8.transpose((6,7,4,5,
+                       11,15,9,13,
+                       2,3,0,1,
+                       10,14,8,12,
+                       17,21,16,20,
+                       19,23,18,22))
+    T8 = T8.join_indices((0,1,2,3), (4,5,6,7), (8,9,10,11),
+                         (12,13,14,15), (16,17,18,19), (20,21,22,23),
+                         dirs=[1,1,-1,-1,1,-1])
+    return T8
+
+
+def contract2x2x2_Tensor(T_list):
+    Tcube = scon((T_list[0], T_list[1], T_list[2], T_list[3], T_list[4],
+                  T_list[5], T_list[6], T_list[7]),
+                 ([-2,-5,7,3,-18,1], [7,-8,-10,9,-19,6],
+                  [12,9,-9,-14,20,10], [-1,3,12,-13,-17,4],
+                  [-3,-6,5,2,1,-22], [5,-7,-11,8,6,-23],
+                  [11,8,-12,-15,10,-24], [-4,2,11,-16,4,-21]))
+    S = Tcube.join_indices((0,1,2,3), (4,5,6,7), (8,9,10,11),
+                           (12,13,14,15), (16,17,18,19), (20,21,22,23),
+                           dirs=[1,1,-1,-1,1,-1])
+    return Tcube
+
+
+def contract2x2x2_ndarray(T_list):
+    Tcube = scon((T_list[0], T_list[1], T_list[2], T_list[3], T_list[4],
+                  T_list[5], T_list[6], T_list[7]),
+                 ([-2,-5,7,3,-18,1], [7,-8,-10,9,-19,6],
+                  [12,9,-9,-14,20,10], [-1,3,12,-13,-17,4],
+                  [-3,-6,5,2,1,-22], [5,-7,-11,8,6,-23],
+                  [11,8,-12,-15,10,-24], [-4,2,11,-16,4,-21]))
+    sh = Tcube.shape
+    S = np.reshape(Tcube,
+                   (sh[0]*sh[1]*sh[2]*sh[3], sh[4]*sh[5]*sh[6]*sh[7],
+                    sh[8]*sh[9]*sh[10]*sh[11],
+                    sh[12]*sh[13]*sh[14]*sh[15],
+                    sh[16]*sh[17]*sh[18]*sh[19],
+                    sh[20]*sh[21]*sh[22]*sh[23]))
+    return S
+
+
 def contract3x3(T):
     """ Takes a rank 4 tensor T and contracts a square made of 9 copies of it
     to a single rank 4 tensor.
