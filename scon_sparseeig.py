@@ -81,7 +81,7 @@ def scon_sparseeig(tensor_list, index_list, in_inds, out_inds,
         if print_progress:
             print(".", end='', flush=True)
         return Av
-     
+
     if print_progress:
         print("Diagonalizing...", end="")
 
@@ -162,7 +162,8 @@ def scon_sparseeig(tensor_list, index_list, in_inds, out_inds,
         if return_eigenvectors:
             U = U[...,order]
             U = type_.from_ndarray(U)
-    print()
+    if print_progress:
+        print()
 
     if return_eigenvectors:
         return S, U
