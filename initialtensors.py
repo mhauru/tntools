@@ -172,4 +172,44 @@ def R(alpha, c):
     res = np.cos(alpha)*eye + 1j*np.sin(alpha)*s
     return res
 
+# # # # # # # # # # # # # 3D stuff # # # # # # # # # # # # # # # # # 
+# TODO: Incorporate this into the more general framework.
+# TODO: Implement this for symmetry preserving tensors.
+
+def get_initial_tensor_CDL_3d(pars):
+    delta = np.eye(2, dtype = pars["dtype"])
+    T = np.einsum(('ae,fi,jm,nb,cq,rk,lu,vd,gs,to,pw,xh '
+                   '-> abcdefghijklmnopqrstuvwx'), 
+                  delta, delta, delta, delta, delta, delta, 
+                  delta, delta, delta, delta, delta, delta)
+    return Tensor.from_ndarray(T.reshape((16,16,16,16,16,16)))
+
+
+def get_initial_tensor_CDL_3d_v2(pars):
+    delta = np.eye(2, dtype = pars["dtype"])
+    T = scon((delta,)*12,
+             ([-11,-21], [-12,-41], [-13,-51], [-14,-61],
+              [-31,-22], [-32,-42], [-33,-52], [-34,-62],
+              [-23,-63], [-64,-43], [-44,-53], [-54,-24]))
+    return Tensor.from_ndarray(T.reshape((16,16,16,16,16,16)))
+
+
+def get_initial_tensor_CQL_3d(pars):
+    delta = np.array([[[1,0],[0,0]],[[0,0],[0,1]]])
+    T = np.einsum(('aeu,fiv,gjq,hbr,mcw,nxk,ols,ptd '
+                   '-> abcdefghijklmnopqrstuvwx'), 
+                  delta, delta, delta, delta, delta, delta, delta,
+                  delta)
+    return Tensor.from_ndarray(T.reshape((16,16,16,16,16,16)))
+
+
+def get_initial_tensor_ising_3d(pars,beta):
+    ham = np.array([[np.cosh(beta)**0.5, np.sinh(beta)**0.5],
+                    [np.cosh(beta)**0.5, -np.sinh(beta)**0.5]],
+                    dtype = pars["dtype"])
+    Id = np.array([[1,1]], dtype = pars["dtype"])
+    T_0 = np.einsum('ai,aj,ak,al,am,an -> ijklmn',
+                    ham, ham, ham, ham, ham, ham)
+    T_0 = Tensor.from_ndarray(T_0)
+    return T_0
 
