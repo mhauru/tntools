@@ -210,6 +210,11 @@ def get_initial_tensor_ising_3d(pars,beta):
     Id = np.array([[1,1]], dtype = pars["dtype"])
     T_0 = np.einsum('ai,aj,ak,al,am,an -> ijklmn',
                     ham, ham, ham, ham, ham, ham)
-    T_0 = Tensor.from_ndarray(T_0)
+    if pars["symmetry_tensors"]:
+        cls, dim, qim = TensorZ2, [1,1], [0,1]
+        T_0 = cls.from_ndarray(T_0, shape=[dim]*6, qhape=[qim]*6,
+                               dirs=[1,1,-1,-1,1,-1])
+    else:
+        T_0 = Tensor.from_ndarray(T_0)
     return T_0
 
