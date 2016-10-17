@@ -1,4 +1,5 @@
 import argparse
+import numpy as np
 from tensors.tensor import Tensor
 from tensors.symmetrytensors import TensorZ2, TensorZ3, TensorU1
 
