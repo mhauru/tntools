@@ -196,14 +196,6 @@ def common_preprocess(tensor_list, index_list, matvec_order, rmatvec_order,
     index_list = list(index_list)
     left_inds = tuple(left_inds)
     right_inds = tuple(right_inds)
-    # TODO this is partially silly because of backwards compatibility.
-    if chis is not None:
-        n_vals = max(chis)
-    elif "k" in kwargs:
-        n_vals = kwargs["k"]
-        del(kwargs["k"])
-    else:
-        n_vals = 6
 
     commontype, commondtype, commonqodulus = get_commons(tensor_list)
 
@@ -290,6 +282,17 @@ def common_preprocess(tensor_list, index_list, matvec_order, rmatvec_order,
         if print_progress:
             print(".", end='', flush=True)
         return Av
+
+    if chis is not None:
+        n_vals = max(chis)
+    elif "k" in kwargs:
+        n_vals = kwargs["k"]
+        del(kwargs["k"])
+    else:
+        n_vals = 6
+    mindim = min(left_flatdim, right_flatdim)
+    if n_vals >= mindim:
+        n_vals = mindim -1
 
     if print_progress:
         print("Diagonalizing...", end="")
