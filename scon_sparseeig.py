@@ -308,7 +308,8 @@ def scon_sparsesvd(tensor_list, index_list, matvec_order=None,
                    rmatvec_order=None, matmat_order=None,
                    right_inds=None, left_inds=None, print_progress=False,
                    qnums_do=(), chis=None, eps=0., return_error=False,
-                   trunc_err_func=None, norm_sq=None, **kwargs):
+                   truncate=True, trunc_err_func=None, norm_sq=None,
+                   **kwargs):
     (matvec, rmatvec, matmat,
      left_qims, left_dims, left_dirs, left_flatdims, left_flatdim,
      right_qims, right_dims, right_dirs, right_flatdims, right_flatdim,
@@ -356,9 +357,12 @@ def scon_sparsesvd(tensor_list, index_list, matvec_order=None,
                           left_dims, right_dims, left_flatdim, right_flatdim,
                           commontype, commondtype, **kwargs)
 
-    S, U, V, err = truncate(S, u=U, v=V, chis=chis, eps=eps,
-                            trunc_err_func=trunc_err_func,norm_sq=norm_sq,
-                            return_error=True)
+    if truncate:
+        S, U, V, err = truncate(S, u=U, v=V, chis=chis, eps=eps,
+                                trunc_err_func=trunc_err_func,norm_sq=norm_sq,
+                                return_error=True)
+    else:
+        err = 0.
 
     if print_progress:
         print()
@@ -426,8 +430,8 @@ def scon_sparseeig(tensor_list, index_list, right_inds, left_inds,
                    matvec_order=None, rmatvec_order=None, matmat_order=None,
                    hermitian=False, print_progress=False, qnums_do=(),
                    return_eigenvectors=True, scon_func=None, chis=None,
-                   eps=0., return_error=False, trunc_err_func=None,
-                   norm_sq=None, **kwargs):
+                   eps=0., return_error=False, truncate=True, 
+                   trunc_err_func=None, norm_sq=None, **kwargs):
     (matvec, rmatvec, matmat,
      left_qims, left_dims, left_dirs, left_flatdims, left_flatdim,
      right_qims, right_dims, right_dirs, right_flatdims, right_flatdim,
@@ -475,14 +479,17 @@ def scon_sparseeig(tensor_list, index_list, right_inds, left_inds,
         if return_eigenvectors:
             U = res[1]
 
-    U = U if return_eigenvectors else None
-    res = truncate(S, u=U, chis=chis, eps=eps,
-                   trunc_err_func=trunc_err_func,norm_sq=norm_sq,
-                   return_error=True)
-    if return_eigenvectors:
-        S, U, err = res
+    if truncate:
+        U = U if return_eigenvectors else None
+        res = truncate(S, u=U, chis=chis, eps=eps,
+                       trunc_err_func=trunc_err_func,norm_sq=norm_sq,
+                       return_error=True)
+        if return_eigenvectors:
+            S, U, err = res
+        else:
+            S, err = res
     else:
-        S, err = res
+        err = 0.
 
     if print_progress:
         print()
