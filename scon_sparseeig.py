@@ -93,8 +93,8 @@ def get_qnums(right_qims, qodulus, qnums_do):
     return qnums
 
 
-def truncate(s, u=None, v=None, chis=None, eps=0, trunc_err_func=None,
-             norm_sq=None, return_error=False):
+def truncate_func(s, u=None, v=None, chis=None, eps=0, trunc_err_func=None,
+                  norm_sq=None, return_error=False):
     chis = s.matrix_decomp_format_chis(chis, eps)
     if hasattr(s, "sects"):
         if trunc_err_func is None:
@@ -358,7 +358,7 @@ def scon_sparsesvd(tensor_list, index_list, matvec_order=None,
                           commontype, commondtype, **kwargs)
 
     if truncate:
-        S, U, V, err = truncate(S, u=U, v=V, chis=chis, eps=eps,
+        S, U, V, err = truncate_func(S, u=U, v=V, chis=chis, eps=eps,
                                 trunc_err_func=trunc_err_func,norm_sq=norm_sq,
                                 return_error=True)
     else:
@@ -481,9 +481,9 @@ def scon_sparseeig(tensor_list, index_list, right_inds, left_inds,
 
     if truncate:
         U = U if return_eigenvectors else None
-        res = truncate(S, u=U, chis=chis, eps=eps,
-                       trunc_err_func=trunc_err_func,norm_sq=norm_sq,
-                       return_error=True)
+        res = truncate_func(S, u=U, chis=chis, eps=eps,
+                            trunc_err_func=trunc_err_func,norm_sq=norm_sq,
+                            return_error=True)
         if return_eigenvectors:
             S, U, err = res
         else:
