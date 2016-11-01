@@ -129,29 +129,41 @@ def truncate_func(s, u=None, v=None, chis=None, eps=0, trunc_err_func=None,
 
         # Truncate each block and create the dim for the new index.
         new_dim = []
+        todelete = []
         for k in s.sects.keys():
             d = dims[k]
             new_dim.append(d)
             if d > 0:
                 s[k] = s[k][:d]
             else:
-                del(s[k])
+                # Avoiding changing the dictionary during the loop.
+                todelete.append(k)
+        for k in todelete:
+            del(s[k])
+
         if u is not None:
+            todelete = []
             for k in u.sects.keys():
                 klast = k[-1]
                 d = dims[(klast,)]
                 if d > 0:
                     u[k] = u[k][..., :d]
                 else:
-                    del(u[k])
+                    todelete.append(k)
+            for k in todelete:
+                del(u[k])
+
         if v is not None:
+            todelete = []
             for k in v.sects.keys():
                 k0 = k[0]
                 d = dims[(k0,)]
                 if d > 0:
                     v[k] = v[k][:d, ...]
                 else:
-                    del(v[k])
+                    todelete.append(k)
+            for k in todelete:
+                del(v[k])
 
         # Remove zero dimension sectors from qim.
         new_qim = s.qhape[0]
