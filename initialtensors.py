@@ -35,15 +35,16 @@ symmetry_bases["potts3"] = np.array([[1,       1,         1],
                                      [1,    phase, phase**2],
                                      [1, phase**2,    phase]],
                                     dtype=np.complex_) / np.sqrt(3)
+del(phase)
 
 def get_initial_tensor(pars, **kwargs):
     if kwargs:
         pars = pars.copy()
         pars.update(kwargs)
     if pars["model"].strip().lower() == "sixvertex":
-        # This is a special case because its easier to build the
-        # Boltzmann weights straight without a Hamiltonian
         return get_initial_sixvertex_tensor(pars)
+    elif pars["model"].strip().lower() == "ising3d":
+        return get_initial_tensor_ising_3d(pars)
     model_name = pars["model"].strip().lower()
     ham = hamiltonians[model_name](pars)
     boltz = np.exp(-pars["beta"]*ham)
@@ -203,7 +204,8 @@ def get_initial_tensor_CQL_3d(pars):
     return Tensor.from_ndarray(T.reshape((16,16,16,16,16,16)))
 
 
-def get_initial_tensor_ising_3d(pars,beta):
+def get_initial_tensor_ising_3d(pars):
+    beta = pars["beta"]
     ham = np.array([[np.cosh(beta)**0.5, np.sinh(beta)**0.5],
                     [np.cosh(beta)**0.5, -np.sinh(beta)**0.5]],
                     dtype = pars["dtype"])
