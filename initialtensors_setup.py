@@ -17,11 +17,6 @@ parinfo = {
         "default": np.float_,
         "idfunc":  lambda pars: True
     },
-    "iter_count": {
-        "type":    "int",
-        "default": 0,
-        "idfunc":  lambda pars: True
-    },
     "initial2x2": {
         "type":    "bool",
         "default": False,

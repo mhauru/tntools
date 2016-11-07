@@ -10,7 +10,7 @@ from pact import Pact
 setupmodule_dict = {
     "A": lambda pars: pars["algorithm"] + "_setup",
     "As": lambda pars: pars["algorithm"] + "_setup",
-    "T3D_spectrum": lambda pars: "T3D_spectrum" "+_setup"
+    "T3D_spectrum": lambda pars: "T3D_spectrum" + "_setup"
 }
 
 
@@ -49,11 +49,10 @@ def get_idpars(dataname, pars):
     prereq_pairs = setupmod.prereq_pairs(dataname, pars)
     for prereq_name, prereq_pars in prereq_pairs:
         prereq_idpars = get_idpars(prereq_name, prereq_pars)
-        idpars.update(prereq_pars)
+        idpars.update(prereq_idpars)
 
     # Get the idpars for this setupmod, and update those in.
     parinfo = setupmod.parinfo
-    idpars = dict()
     for k, v in parinfo.items():
         if v["idfunc"](pars):
             idpars[k] = pars[k]
