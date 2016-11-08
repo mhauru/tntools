@@ -1,13 +1,12 @@
 import hashlib
 import pickle
 import os
+import logging
 
-# TODO Do we ever use self.d?
+# TODO Is the whole class structure necessary?
 class Pact:
-    def __init__(self, folder, d=dict(), **kwargs):
+    def __init__(self, folder):
         self.folder = folder
-        self.d = d.copy()
-        self.d.update(kwargs)
         self.indexpath = folder + "pactindex.p"
 
     def generate_filename(self, name, d, extension=".p", **kwargs):
@@ -74,7 +73,7 @@ class Pact:
             pickle.dump(data, f)
         self.write_to_index(filename, d)
         self.store_pars_file(name, d)
-        print("Wrote to {}".format(path))
+        logging.info("Wrote to {}".format(path))
 
     def store_pars_file(self, name, d, **kwargs):
         d = self.update_dict(d, **kwargs)
@@ -102,7 +101,7 @@ class Pact:
         path = self.generate_path(filename=filename)
         with open(path, 'rb') as f:
             data = pickle.load(f)
-        print("Read from {}".format(path))
+        logging.info("Read from {}".format(path))
         return data
 
     def reconstruct_index(self):

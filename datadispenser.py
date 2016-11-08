@@ -1,7 +1,11 @@
-#!/usr/bin/python3
-
 import importlib
+import logging
+import configparser
+import numpy as np
 from pact import Pact
+
+np.set_printoptions(precision=7)
+np.set_printoptions(linewidth=100)
 
 # A dictionary that maps each possible dataname to a function that takes
 # in pars, and gives out the name of the setup module appropriate for
@@ -30,8 +34,6 @@ def get_data(db, dataname, pars, **kwargs):
     except FileNotFoundError:
         # TODO Storing text output of generation.
         data = generate_data(dataname, pars, db=db)
-        if pars["store_data"]:
-            p.store(data, dataname, idpars)
     return data
 
 
@@ -56,24 +58,42 @@ def get_idpars(dataname, pars):
     for k, v in parinfo.items():
         if v["idfunc"](pars):
             idpars[k] = pars[k]
+    if hasattr(setupmod, "version"):
+        modulename = setupmodule_dict[dataname](pars)
+        idpars[modulename + "_version"] = setupmod.version
     if hasattr(setupmod, "idpars_finalize"):
         idpars = setupmod.idpars_finalize(pars, idpars)
     return idpars
 
 
 def generate_data(dataname, pars, db=None):
+    havedb = True if db is not None else False
+    storedata = pars["store_data"] and havedb
+    if havedb:
+        p = Pact(db)
+    if storedata:
+        idpars = get_idpars(dataname, pars)
     setupmod = get_setupmod(dataname, pars)
     prereq_pairs = setupmod.prereq_pairs(dataname, pars)
     prereqs = []
     for prereq_name, prereq_pars in prereq_pairs:
-        if db is not None:
+        if havedb:
             prereq = get_data(db, prereq_name, prereq_pars)
         else:
             prereq = generate_data(prereq_name, prereq_pars)
         prereq = list(prereq)
         prereqs += prereq
-    # TODO Capture output somehow, and store it too.
-    data = setupmod.generate(dataname, *prereqs, pars=pars)
+
+    if storedata:
+        handler, filelogger = set_logging_handlers(p, dataname, idpars)
+    data = setupmod.generate(dataname, *prereqs, pars=pars,
+                             filelogger=filelogger)
+    if storedata:
+        remove_logging_handlers(logging.getLogger(), handler)
+        remove_logging_handlers(filelogger, handler)
+
+    if storedata:
+        p.store(data, dataname, idpars)
     return data
 
 
@@ -81,3 +101,32 @@ def get_setupmod(dataname, pars):
     modulename = setupmodule_dict[dataname](pars)
     setupmod = importlib.import_module(modulename)
     return setupmod
+
+
+def set_logging_handlers(p, dataname, idpars):
+    rootlogger = logging.getLogger()
+    filelogger = logging.getLogger("datadispenser_file")
+    filelogger.propagate = False
+
+    logfilename = p.generate_path(dataname, idpars, extension=".log")
+    filehandler = logging.FileHandler(logfilename, mode='w')
+    # TODO DEBUG?
+    filehandler.setLevel(logging.INFO)
+
+    parser = configparser.ConfigParser(interpolation=None)
+    parser.read('../tools/logging_default.conf')
+    fmt = parser.get('formatter_default', 'format')
+    datefmt = parser.get('formatter_default', 'datefmt')
+    formatter = logging.Formatter(fmt=fmt, datefmt=datefmt)
+
+    filehandler.setFormatter(formatter)
+    rootlogger.addHandler(filehandler)
+    filelogger.addHandler(filehandler)
+    return filehandler, filelogger
+
+
+def remove_logging_handlers(logger, *args):
+    for l in args:
+        logger.removeHandler(l)
+
+
