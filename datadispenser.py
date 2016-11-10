@@ -2,6 +2,7 @@ import importlib
 import logging
 import configparser
 import numpy as np
+import os
 from pact import Pact
 
 np.set_printoptions(precision=7)
@@ -86,6 +87,8 @@ def generate_data(dataname, pars, db=None):
 
     if storedata:
         handler, filelogger = set_logging_handlers(p, dataname, idpars)
+    else:
+        filelogger = None
     data = setupmod.generate(dataname, *prereqs, pars=pars,
                              filelogger=filelogger)
     if storedata:
@@ -109,6 +112,7 @@ def set_logging_handlers(p, dataname, idpars):
     filelogger.propagate = False
 
     logfilename = p.generate_path(dataname, idpars, extension=".log")
+    os.makedirs(os.path.dirname(logfilename), exist_ok=True)
     filehandler = logging.FileHandler(logfilename, mode='w')
     # TODO DEBUG?
     filehandler.setLevel(logging.INFO)

@@ -84,7 +84,7 @@ def prereq_pairs(dataname, pars):
     return res
 
 
-def generate(dataname, *args, pars=dict()):
+def generate(dataname, *args, pars=dict(), filelogger=None):
     if dataname in {"A", "As"}:
         A = initialtensors.get_initial_tensor(pars)
         log_fact = 0

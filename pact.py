@@ -2,6 +2,7 @@ import hashlib
 import pickle
 import os
 import logging
+import yaml
 
 # TODO Is the whole class structure necessary?
 class Pact:
@@ -41,6 +42,7 @@ class Pact:
 
     @classmethod
     def dict_to_hashable(cls, d):
+        # TODO Could we use a yaml.dump string for this purpose?
         # For the purpose of using a dict d as a key for some other
         # dict, we convert d into something hashable.
         d = d.copy()
@@ -77,12 +79,11 @@ class Pact:
 
     def store_pars_file(self, name, d, **kwargs):
         d = self.update_dict(d, **kwargs)
-        filename = self.generate_filename(name, d, extension=".pars")
+        filename = self.generate_filename(name, d, extension=".yaml")
         path = self.generate_path(filename=filename)
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, 'w') as f:
-            for k, v in sorted(d.items()):
-                print("%s: %s"%(k, v), file=f)
+            yaml.dump(d, f, default_flow_style=False)
 
     def write_to_index(self, filename, d):
         try:
