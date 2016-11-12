@@ -21,26 +21,59 @@ setupmodule_dict = {
 
 parinfo = {
     "store_data": {
-        "type":    "bool",
         "default": False,
     },
 }
 
-def get_data(db, dataname, pars, **kwargs):
+
+def apply_parinfo_defaults(pars, parinfo):
+    for k, v in parinfo.items():
+        if k not in pars:
+            pars[k] = v["default"]
+    return
+
+
+def get_data(db, dataname, pars, return_pars=False, **kwargs):
     pars = copy_update(pars, **kwargs)
+    apply_parinfo_defaults(pars, parinfo)
+    update_default_pars(dataname, pars)
     idpars = get_idpars(dataname, pars)
     p = Pact(db)
     try:
         data = p.fetch(dataname, idpars)
     except FileNotFoundError:
-        # TODO Storing text output of generation.
         data = generate_data(dataname, pars, db=db)
-    return data
+    retval = (data,)
+    if return_pars:
+        retval += (pars,)
+    if len(retval) == 1:
+        retval = retval[0]
+    return retval
 
 
 def copy_update(pars, **kwargs):
     pars = pars.copy()
     pars.update(kwargs)
+    return pars
+
+
+def update_default_pars(dataname, pars):
+    setupmod = get_setupmod(dataname, pars)
+
+    # Get the pars for the prereqs and update them in.
+    prereq_pairs = setupmod.prereq_pairs(dataname, pars)
+    prereq_pars_all = dict()
+    for prereq_name, prereq_pars in prereq_pairs:
+        update_default_pars(prereq_name, prereq_pars)
+        prereq_pars_all.update(prereq_pars)
+
+    for k, v in prereq_pars_all.items():
+        if k not in pars:
+            pars[k] = v
+
+    # Get the default for this setupmod, and update those in.
+    parinfo = setupmod.parinfo
+    apply_parinfo_defaults(pars, parinfo)
     return pars
 
 
@@ -86,7 +119,7 @@ def generate_data(dataname, pars, db=None):
         prereqs += prereq
 
     if storedata:
-        handler, filelogger = set_logging_handlers(p, dataname, idpars)
+        handler, filelogger = set_logging_handlers(p, dataname, pars)
     else:
         filelogger = None
     data = setupmod.generate(dataname, *prereqs, pars=pars,
@@ -106,16 +139,19 @@ def get_setupmod(dataname, pars):
     return setupmod
 
 
-def set_logging_handlers(p, dataname, idpars):
+def set_logging_handlers(p, dataname, pars):
     rootlogger = logging.getLogger()
     filelogger = logging.getLogger("datadispenser_file")
     filelogger.propagate = False
 
-    logfilename = p.generate_path(dataname, idpars, extension=".log")
+    idpars = get_idpars(dataname, pars)
+    logfilename = p.generate_path(dataname, pars, extension=".log")
     os.makedirs(os.path.dirname(logfilename), exist_ok=True)
     filehandler = logging.FileHandler(logfilename, mode='w')
-    # TODO DEBUG?
-    filehandler.setLevel(logging.INFO)
+    if "debug" in pars and pars["debug"]:
+        filehandler.setLevel(logging.DEBUG)
+    else:
+        filehandler.setLevel(logging.INFO)
 
     parser = configparser.ConfigParser(interpolation=None)
     parser.read('../tools/logging_default.conf')

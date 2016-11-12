@@ -8,32 +8,26 @@ threedee_models = {"ising3d"}
 parinfo = {
     # Generic parameters
     "model": {
-        "type":    "string",
         "default": "",
         "idfunc":  lambda pars: True
     },
     "dtype": {
-        "type":    "dtype",
         "default": np.float_,
         "idfunc":  lambda pars: True
     },
     "initial2x2": {
-        "type":    "bool",
         "default": False,
         "idfunc":  lambda pars: pars["model"] in twodee_models
     },
     "initial4x4": {
-        "type":    "bool",
         "default": False,
         "idfunc":  lambda pars: pars["model"] in twodee_models
     },
     "initial2x2x2": {
-        "type":    "bool",
         "default": False,
         "idfunc":  lambda pars: pars["model"] in threedee_models
     },
     "symmetry_tensors": {
-        "type":    "bool",
         "default": False,
         "idfunc":  lambda pars: True
     },
@@ -41,35 +35,29 @@ parinfo = {
     # Model dependent parameters.
     # Ising and 3-state Potts
     "beta": {
-        "type":    "float",
         "default": 1.,
         "idfunc":  lambda pars: pars["model"] in {"ising", "potts3"}
     },
 
     "J": {
-        "type":    "float",
         "default": 1.,
         "idfunc":  lambda pars: pars["model"] in {"ising", "potts3"}
     },
     "H": {
-        "type":    "float",
         "default": 0.,
         "idfunc":  lambda pars: pars["model"] == "ising"
     },
 
     # Sixvertex model
     "sixvertex_a": {
-        "type":    "float",
         "default": 1.,
         "idfunc":  lambda pars: pars["model"] == "sixvertex"
     },
     "sixvertex_b": {
-        "type":    "float",
         "default": 1.,
         "idfunc":  lambda pars: pars["model"] == "sixvertex"
     },
     "sixvertex_c": {
-        "type":    "float",
         "default": np.sqrt(2),
         "idfunc":  lambda pars: pars["model"] == "sixvertex"
     },
