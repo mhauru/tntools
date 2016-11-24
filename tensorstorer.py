@@ -6,6 +6,7 @@ to create them.
 
 import pickle
 import os
+import warnings
 from pathfinder import PathFinder
 
 
@@ -14,11 +15,12 @@ def update_pars_and_pather(pars, pather, filename, **kwargs):
         pars = pars.copy()
         pars.update(kwargs)
         if pather is not None:
+            # If kwargs, we need to make a pather to make sure that path
+            # matches contents.
+            pather = None
             warnings.warn("tensorstorer was given both a pather and kwargs. "
                           "Generating a new pather.")
-    if kwargs or pather is None:
-        # If kwargs, we need to make a pather to make sure that path
-        # matches contents.
+    if pather is None:
         pather = PathFinder(filename, pars) 
     return pars, pather
 
