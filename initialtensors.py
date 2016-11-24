@@ -41,19 +41,19 @@ def get_initial_tensor(pars, **kwargs):
     if kwargs:
         pars = pars.copy()
         pars.update(kwargs)
-    if pars["model"].strip().lower() == "sixvertex":
-        return get_initial_sixvertex_tensor(pars)
-    elif pars["model"].strip().lower() == "ising3d":
-        return get_initial_tensor_ising_3d(pars)
     model_name = pars["model"].strip().lower()
+    if model_name == "sixvertex":
+        return get_initial_sixvertex_tensor(pars)
+    elif model_name == "ising3d":
+        return get_initial_tensor_ising_3d(pars)
     ham = hamiltonians[model_name](pars)
     boltz = np.exp(-pars["beta"]*ham)
     T_0 = np.einsum('ab,bc,cd,da->abcd', boltz, boltz, boltz, boltz)
+    u = symmetry_bases[model_name]
+    u_dg = u.T.conjugate()
+    T_0 = scon((T_0, u, u, u_dg, u_dg),
+               ([1,2,3,4], [-1,1], [-2,2], [3,-3], [4,-4]))
     if pars["symmetry_tensors"]:
-        u = symmetry_bases[model_name]
-        u_dg = u.T.conjugate()
-        T_0 = scon((T_0, u, u, u_dg, u_dg),
-                   ([1,2,3,4], [-1,1], [-2,2], [3,-3], [4,-4]))
         cls, dim, qim = symmetry_classes_dims_qims[model_name]
         T_0 = cls.from_ndarray(T_0, shape=[dim]*4, qhape=[qim]*4,
                                dirs=[1,1,-1,-1])
@@ -147,13 +147,6 @@ def Csigma_np(sigma_str):
     return CNOT
 
 
-def dim2_projector_np(i,j):
-    xi, xj = [np.array([[1,0]]) if n == 0 else np.array([[0,1]])
-              for n in (i, j)]
-    P = np.kron(xi.T, xj)
-    return P
-
-
 def sigma(c):
     if c=="x":
         res = np.array([[ 0, 1],
@@ -209,7 +202,6 @@ def get_initial_tensor_ising_3d(pars):
     ham = np.array([[np.cosh(beta)**0.5, np.sinh(beta)**0.5],
                     [np.cosh(beta)**0.5, -np.sinh(beta)**0.5]],
                     dtype = pars["dtype"])
-    Id = np.array([[1,1]], dtype = pars["dtype"])
     T_0 = np.einsum('ai,aj,ak,al,am,an -> ijklmn',
                     ham, ham, ham, ham, ham, ham)
     if pars["symmetry_tensors"]:
@@ -219,4 +211,50 @@ def get_initial_tensor_ising_3d(pars):
     else:
         T_0 = Tensor.from_ndarray(T_0)
     return T_0
+
+
+# # # # # # # # # # # # # # # # Impurities # # # # # # # # # # # # # # # #
+
+
+impurity_dict = dict()
+# Ising
+ising_dict = {
+    "id": np.eye(2),
+    "sigmax": sigma("x"),
+    "sigmay": sigma("y"),
+    "sigmaz": sigma("z")
+}
+for k, M in ising_dict.items():
+    u = symmetry_bases["ising"]
+    u_dg = u.T.conjugate()
+    M = scon((M, u, u_dg),
+             ([1,2], [-1,1], [-2,2]))
+    cls, dim, qim = symmetry_classes_dims_qims["ising"]
+    M = cls.from_ndarray(M, shape=[dim]*2, qhape=[qim]*2,
+                         dirs=[1,-1])
+    ising_dict[k] = M
+impurity_dict["ising"] = ising_dict
+impurity_dict["ising3d"] = ising_dict
+del(ising_dict)
+
+
+def get_initial_impurity(pars, **kwargs):
+    if kwargs:
+        pars = pars.copy()
+        pars.update(kwargs)
+    A_pure = get_initial_tensor(pars)
+    try:
+        impurity_matrix = impurity_dict[pars["model"]][pars["impurity"]]
+    except KeyError:
+        msg = ("Unknown (model, impurity) combination: ({}, {})"
+               .format(pars["model"], pars["impurity"]))
+        raise ValueError(msg)
+    # TODO The expectation that everything is in the symmetry basis
+    # clashes with how ising and potts initial tensors are generated.
+    if not pars["symmetry_tensors"]:
+        impurity_matrix = Tensor.from_ndarray(impurity_matrix.to_ndarray())
+    A_indices = [-i for i in range(1, len(A_pure.shape)+1)]
+    A_indices[0] *= -1
+    A_impure = scon((A_pure, impurity_matrix), (A_indices, [-1,1]))
+    return A_impure
 
