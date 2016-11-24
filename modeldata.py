@@ -247,9 +247,6 @@ def sixvertex_exact_f(a, b, c):
         eps_1 = -np.log(a)
         mu = np.arcsin(c)/2
         omega = mu - np.arcsin(a)
-        print(omega)
-        print(mu)
-        print(eps_1)
         def integrand(x):
             res = ((np.sinh(2*(mu+omega)*x) / np.sinh(np.pi*x)) *
                    (np.sinh((np.pi-2*mu)*x) / np.cosh(2*mu*x)) /
