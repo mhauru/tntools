@@ -46,7 +46,7 @@ def contract2x2_ndarray(T_list, vert_flip=False):
 
 
 def contract2x2x2(T_list):
-    """ Takes an iterable of rank 4 tensors and contracts a cube made
+    """ Takes an iterable of rank 6 tensors and contracts a cube made
     of them to a single rank 6 tensor. If only a single tensor is given
     8 copies of the same tensor are used.
     """
