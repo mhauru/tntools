@@ -146,7 +146,7 @@ def set_logging_handlers(p, dataname, pars):
     filelogger.propagate = False
 
     idpars = get_idpars(dataname, pars)
-    logfilename = p.generate_path(dataname, pars, extension=".log")
+    logfilename = p.generate_path(dataname, idpars, extension=".log")
     os.makedirs(os.path.dirname(logfilename), exist_ok=True)
     filehandler = logging.FileHandler(logfilename, mode='w')
     if "debug" in pars and pars["debug"]:
