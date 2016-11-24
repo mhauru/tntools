@@ -1,10 +1,9 @@
 import collections
-import warnings
 import hashlib
 
 class PathFinder:
     def __init__(self, source_file, pars, ignore_pars=[], **kwargs):
-        self.prefix = "data/%s/"%source_file.replace(".py", "", 16)
+        self.prefix = "data/%s/"%source_file.replace(".py", "")
         if not isinstance(ignore_pars, collections.Iterable):
             ignore_pars = set((ignore_pars,))
         else:
