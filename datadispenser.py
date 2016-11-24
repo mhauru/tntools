@@ -23,7 +23,7 @@ setupmodule_dict = {
 
 parinfo = {
     "store_data": {
-        "default": False,
+        "default": True,
     },
 }
 
