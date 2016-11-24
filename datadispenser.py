@@ -3,6 +3,7 @@ import logging
 import configparser
 import numpy as np
 import os
+from multilineformatter import MultilineFormatter
 from pact import Pact
 
 np.set_printoptions(precision=7)
@@ -15,6 +16,7 @@ np.set_printoptions(linewidth=100)
 setupmodule_dict = {
     "A": lambda pars: pars["algorithm"] + "_setup",
     "As": lambda pars: pars["algorithm"] + "_setup",
+    "As_impure": lambda pars: pars["algorithm"] + "_setup",
     "T3D_spectrum": lambda pars: "T3D_spectrum" + "_setup"
 }
 
@@ -90,7 +92,7 @@ def get_idpars(dataname, pars):
     # Get the idpars for this setupmod, and update those in.
     parinfo = setupmod.parinfo
     for k, v in parinfo.items():
-        if v["idfunc"](pars):
+        if v["idfunc"](dataname, pars):
             idpars[k] = pars[k]
     if hasattr(setupmod, "version"):
         modulename = setupmodule_dict[dataname](pars)
@@ -115,8 +117,7 @@ def generate_data(dataname, pars, db=None):
             prereq = get_data(db, prereq_name, prereq_pars)
         else:
             prereq = generate_data(prereq_name, prereq_pars)
-        prereq = list(prereq)
-        prereqs += prereq
+        prereqs.append(prereq)
 
     if storedata:
         handler, filelogger = set_logging_handlers(p, dataname, pars)
@@ -157,7 +158,7 @@ def set_logging_handlers(p, dataname, pars):
     parser.read('../tools/logging_default.conf')
     fmt = parser.get('formatter_default', 'format')
     datefmt = parser.get('formatter_default', 'datefmt')
-    formatter = logging.Formatter(fmt=fmt, datefmt=datefmt)
+    formatter = MultilineFormatter(fmt=fmt, datefmt=datefmt)
 
     filehandler.setFormatter(formatter)
     rootlogger.addHandler(filehandler)
