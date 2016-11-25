@@ -166,15 +166,15 @@ def R(alpha, c):
     res = np.cos(alpha)*eye + 1j*np.sin(alpha)*s
     return res
 
-# # # # # # # # # # # # # 3D stuff # # # # # # # # # # # # # # # # # 
+# # # # # # # # # # # # # 3D stuff # # # # # # # # # # # # # # # # #
 # TODO: Incorporate this into the more general framework.
 # TODO: Implement this for symmetry preserving tensors.
 
 def get_initial_tensor_CDL_3d(pars):
     delta = np.eye(2, dtype = pars["dtype"])
     T = np.einsum(('ae,fi,jm,nb,cq,rk,lu,vd,gs,to,pw,xh '
-                   '-> abcdefghijklmnopqrstuvwx'), 
-                  delta, delta, delta, delta, delta, delta, 
+                   '-> abcdefghijklmnopqrstuvwx'),
+                  delta, delta, delta, delta, delta, delta,
                   delta, delta, delta, delta, delta, delta)
     return Tensor.from_ndarray(T.reshape((16,16,16,16,16,16)))
 
@@ -191,7 +191,7 @@ def get_initial_tensor_CDL_3d_v2(pars):
 def get_initial_tensor_CQL_3d(pars):
     delta = np.array([[[1,0],[0,0]],[[0,0],[0,1]]])
     T = np.einsum(('aeu,fiv,gjq,hbr,mcw,nxk,ols,ptd '
-                   '-> abcdefghijklmnopqrstuvwx'), 
+                   '-> abcdefghijklmnopqrstuvwx'),
                   delta, delta, delta, delta, delta, delta, delta,
                   delta)
     return Tensor.from_ndarray(T.reshape((16,16,16,16,16,16)))
@@ -199,7 +199,7 @@ def get_initial_tensor_CQL_3d(pars):
 
 def get_initial_tensor_ising_3d(pars):
     beta = pars["beta"]
-    ham = np.array([[np.cosh(beta)**0.5, np.sinh(beta)**0.5],
+    ham = np.array([[np.cosh(beta)**0.5,  np.sinh(beta)**0.5],
                     [np.cosh(beta)**0.5, -np.sinh(beta)**0.5]],
                     dtype = pars["dtype"])
     T_0 = np.einsum('ai,aj,ak,al,am,an -> ijklmn',
@@ -232,10 +232,61 @@ for k, M in ising_dict.items():
     cls, dim, qim = symmetry_classes_dims_qims["ising"]
     M = cls.from_ndarray(M, shape=[dim]*2, qhape=[qim]*2,
                          dirs=[1,-1])
-    ising_dict[k] = M
+    ising_dict[k] = lambda pars: M
 impurity_dict["ising"] = ising_dict
-impurity_dict["ising3d"] = ising_dict
 del(ising_dict)
+
+impurity_dict["ising3d"] = dict()
+impurity_dict["ising3d"]["id"] = lambda pars: TensorZ2.eye([1,1])
+impurity_dict["ising3d"]["sigmaz"] = lambda pars: (
+    TensorZ2.from_ndarray(sigmaz("z"), shape=[[1,1]]*2, qhape=[[0,1]]*2,
+                          dirs=[1,-1])
+)
+impurity_dict["ising3d"]["sigmax"] = lambda pars: (
+    TensorZ2.from_ndarray(sigmaz("x"), shape=[[1,1]]*2, qhape=[[0,1]]*2,
+                          dirs=[1,-1])
+)
+impurity_dict["ising3d"]["sigmay"] = lambda pars: (
+    TensorZ2.from_ndarray(sigmaz("y"), shape=[[1,1]]*2, qhape=[[0,1]]*2,
+                          dirs=[1,-1])
+)
+
+def ising3d_ham(beta):
+    res = np.array([[np.cosh(beta)**0.5,  np.sinh(beta)**0.5],
+                    [np.cosh(beta)**0.5, -np.sinh(beta)**0.5]])
+    return res
+
+def ising3d_ham_inv(beta):
+    res = 0.5*np.array([[np.cosh(beta)**(-0.5),  np.cosh(beta)**(-0.5)],
+                        [np.sinh(beta)**(-0.5), -np.sinh(beta)**(-0.5)]])
+    return res
+
+def ising3d_ham_T(beta):
+    res = np.array([[np.cosh(beta)**0.5,  np.cosh(beta)**0.5],
+                    [np.sinh(beta)**0.5, -np.sinh(beta)**0.5]])
+    return res
+
+def ising3d_ham_T_inv(beta):
+    res = 0.5*np.array([[np.cosh(beta)**(-0.5),  np.sinh(beta)**(-0.5)],
+                        [np.cosh(beta)**(-0.5), -np.sinh(beta)**(-0.5)]])
+    return res
+
+def ising3d_U(beta):
+    matrix = (ising3d_ham_inv(beta)
+              .dot(sigma("z"))
+              .dot(ising3d_ham(beta))
+              .dot(ising3d_ham_T_inv(beta))
+              .dot(sigma("z"))
+              .dot(ising3d_ham_T_inv(beta)))
+    matrix = TensorZ2.from_ndarray(matrix, shape=[[1,1]]*2, qhape=[[0,1]]*2,
+                                   dirs=[1,-1])
+    # Factor of -1 because U = - \partial log Z / \partial beta, and a
+    # factor of 2 because there are two bonds per lattice sites, and we
+    # normalize by number of sites.
+    matrix *= -2
+    return matrix
+
+impurity_dict["ising3d"]["U"] = lambda pars: ising3d_U(pars["beta"])
 
 
 def get_initial_impurity(pars, **kwargs):
@@ -243,11 +294,13 @@ def get_initial_impurity(pars, **kwargs):
         pars = pars.copy()
         pars.update(kwargs)
     A_pure = get_initial_tensor(pars)
+    model = pars["model"]
+    impurity = pars["impurity"]
     try:
-        impurity_matrix = impurity_dict[pars["model"]][pars["impurity"]]
+        impurity_matrix = impurity_dict[model][impurity](pars)
     except KeyError:
         msg = ("Unknown (model, impurity) combination: ({}, {})"
-               .format(pars["model"], pars["impurity"]))
+               .format(model, impurity))
         raise ValueError(msg)
     # TODO The expectation that everything is in the symmetry basis
     # clashes with how ising and potts initial tensors are generated.
