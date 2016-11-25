@@ -3,7 +3,7 @@ import logging
 import configparser
 import numpy as np
 import os
-from multilineformatter import MultilineFormatter
+import multilineformatter
 from pact import Pact
 
 np.set_printoptions(precision=7)
@@ -155,10 +155,11 @@ def set_logging_handlers(p, dataname, pars):
         filehandler.setLevel(logging.INFO)
 
     parser = configparser.ConfigParser(interpolation=None)
-    parser.read('logging_default.conf')
+    tools_path = os.path.dirname(multilineformatter.__file__)
+    parser.read(tools_path + '/logging_default.conf')
     fmt = parser.get('formatter_default', 'format')
     datefmt = parser.get('formatter_default', 'datefmt')
-    formatter = MultilineFormatter(fmt=fmt, datefmt=datefmt)
+    formatter = multilineformatter.MultilineFormatter(fmt=fmt, datefmt=datefmt)
 
     filehandler.setFormatter(formatter)
     rootlogger.addHandler(filehandler)
