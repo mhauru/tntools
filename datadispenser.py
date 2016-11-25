@@ -155,7 +155,7 @@ def set_logging_handlers(p, dataname, pars):
         filehandler.setLevel(logging.INFO)
 
     parser = configparser.ConfigParser(interpolation=None)
-    parser.read('../tools/logging_default.conf')
+    parser.read('logging_default.conf')
     fmt = parser.get('formatter_default', 'format')
     datefmt = parser.get('formatter_default', 'datefmt')
     formatter = MultilineFormatter(fmt=fmt, datefmt=datefmt)
