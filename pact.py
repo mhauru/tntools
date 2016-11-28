@@ -105,6 +105,13 @@ class Pact:
         logging.info("Read from {}".format(path))
         return data
 
+    def exists(self, name, d, extension=".p", **kwargs):
+        d = self.update_dict(d, **kwargs)
+        filename = self.generate_filename(name, d, extension=extension)
+        path = self.generate_path(filename=filename)
+        exists = os.path.isfile(path)
+        return exists
+
     def reconstruct_index(self):
         # TODO
         pass

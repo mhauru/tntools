@@ -41,9 +41,9 @@ def get_data(db, dataname, pars, return_pars=False, **kwargs):
     update_default_pars(dataname, pars)
     idpars = get_idpars(dataname, pars)
     p = Pact(db)
-    try:
+    if p.exists(dataname, idpars):
         data = p.fetch(dataname, idpars)
-    except FileNotFoundError:
+    else:
         data = generate_data(dataname, pars, db=db)
     retval = (data,)
     if return_pars:
