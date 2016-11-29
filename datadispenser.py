@@ -14,9 +14,15 @@ np.set_printoptions(linewidth=100)
 # this dataname and pars. Note that often the return value doesn't even
 # depend on pars.
 setupmodule_dict = {
-    "A": lambda pars: pars["algorithm"] + "_setup",
-    "As": lambda pars: pars["algorithm"] + "_setup",
-    "As_impure": lambda pars: pars["algorithm"] + "_setup",
+    "A": lambda pars: (pars["algorithm"] + "_setup"
+                       if pars["iter_count"] > 0
+                       else "initialtensors_setup"),
+    "As": lambda pars: (pars["algorithm"] + "_setup"
+                        if pars["iter_count"] > 0
+                        else "initialtensors_setup"),
+    "As_impure": lambda pars: (pars["algorithm"] + "_setup"
+                               if pars["iter_count"] > 0
+                               else "initialtensors_setup"),
     "T3D_spectrum": lambda pars: "T3D_spectrum" + "_setup"
 }
 
