@@ -175,6 +175,7 @@ def set_logging_handlers(p, dataname, pars):
 
 def remove_logging_handlers(logger, *args):
     for l in args:
+        l.close()
         logger.removeHandler(l)
 
 
