@@ -76,6 +76,7 @@ class Pact:
         self.write_to_index(filename, d)
         self.store_pars_file(name, d)
         logging.info("Wrote to {}".format(path))
+        return
 
     def store_pars_file(self, name, d, **kwargs):
         d = self.update_dict(d, **kwargs)
@@ -84,6 +85,7 @@ class Pact:
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, 'w') as f:
             yaml.dump(d, f, default_flow_style=False)
+        return
 
     def write_to_index(self, filename, d):
         try:
@@ -95,6 +97,7 @@ class Pact:
         index[fs] = filename
         with open(self.indexpath, "wb") as f:
             pickle.dump(index, f)
+        return
 
     def fetch(self, name, d, extension=".p", **kwargs):
         d = self.update_dict(d, **kwargs)
