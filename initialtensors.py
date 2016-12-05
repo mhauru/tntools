@@ -196,12 +196,13 @@ def get_initial_tensor_CQL_3d(pars):
                   delta)
     return Tensor.from_ndarray(T.reshape((16,16,16,16,16,16)))
 
+# DEBUG
+#global_random_T_0 = TensorZ2.random(shape=[[1,1]]*6, dirs=[1,1,-1,-1,1,-1])
+# END DEBUG
 
 def get_initial_tensor_ising_3d(pars):
     beta = pars["beta"]
-    ham = np.array([[np.cosh(beta)**0.5,  np.sinh(beta)**0.5],
-                    [np.cosh(beta)**0.5, -np.sinh(beta)**0.5]],
-                    dtype = pars["dtype"])
+    ham = ising3d_ham(beta)
     T_0 = np.einsum('ai,aj,ak,al,am,an -> ijklmn',
                     ham, ham, ham, ham, ham, ham)
     if pars["symmetry_tensors"]:
@@ -210,6 +211,9 @@ def get_initial_tensor_ising_3d(pars):
                                dirs=[1,1,-1,-1,1,-1])
     else:
         T_0 = Tensor.from_ndarray(T_0)
+    # DEBUG
+    #T_0 = global_random_T_0
+    # END DEBUG
     return T_0
 
 
@@ -275,15 +279,15 @@ def ising3d_U(beta):
     matrix = (ising3d_ham_inv(beta)
               .dot(sigma("z"))
               .dot(ising3d_ham(beta))
-              .dot(ising3d_ham_T_inv(beta))
+              .dot(ising3d_ham_T(beta))
               .dot(sigma("z"))
               .dot(ising3d_ham_T_inv(beta)))
     matrix = TensorZ2.from_ndarray(matrix, shape=[[1,1]]*2, qhape=[[0,1]]*2,
-                                   dirs=[1,-1])
+                                   dirs=[-1,1])
     # Factor of -1 because U = - \partial log Z / \partial beta, and a
-    # factor of 2 because there are two bonds per lattice sites, and we
+    # factor of 3 because there are two bonds per lattice site, and we
     # normalize by number of sites.
-    matrix *= -2
+    matrix *= -3
     return matrix
 
 impurity_dict["ising3d"]["U"] = lambda pars: ising3d_U(pars["beta"])
@@ -308,6 +312,6 @@ def get_initial_impurity(pars, **kwargs):
         impurity_matrix = Tensor.from_ndarray(impurity_matrix.to_ndarray())
     A_indices = [-i for i in range(1, len(A_pure.shape)+1)]
     A_indices[0] *= -1
-    A_impure = scon((A_pure, impurity_matrix), (A_indices, [-1,1]))
+    A_impure = scon((A_pure, impurity_matrix), (A_indices, [1,-1]))
     return A_impure
 
