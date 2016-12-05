@@ -224,9 +224,9 @@ impurity_dict = dict()
 # Ising
 ising_dict = {
     "id": np.eye(2),
-    "sigmax": sigma("x"),
+    "sigmax": np.real(sigma("x")),
     "sigmay": sigma("y"),
-    "sigmaz": sigma("z")
+    "sigmaz": np.real(sigma("z"))
 }
 for k, M in ising_dict.items():
     u = symmetry_bases["ising"]
