@@ -282,6 +282,7 @@ def ising3d_U(beta):
               .dot(ising3d_ham_T(beta))
               .dot(sigma("z"))
               .dot(ising3d_ham_T_inv(beta)))
+    matrix = np.real(matrix)
     matrix = TensorZ2.from_ndarray(matrix, shape=[[1,1]]*2, qhape=[[0,1]]*2,
                                    dirs=[-1,1])
     # Factor of -1 because U = - \partial log Z / \partial beta, and a
