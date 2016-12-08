@@ -235,24 +235,24 @@ for k, M in ising_dict.items():
              ([1,2], [-1,1], [-2,2]))
     cls, dim, qim = symmetry_classes_dims_qims["ising"]
     M = cls.from_ndarray(M, shape=[dim]*2, qhape=[qim]*2,
-                         dirs=[1,-1])
+                         dirs=[-1,1])
     ising_dict[k] = lambda pars: M
 impurity_dict["ising"] = ising_dict
 del(ising_dict)
 
 impurity_dict["ising3d"] = dict()
-impurity_dict["ising3d"]["id"] = lambda pars: TensorZ2.eye([1,1])
+impurity_dict["ising3d"]["id"] = lambda pars: TensorZ2.eye([1,1]).transpose()
 impurity_dict["ising3d"]["sigmaz"] = lambda pars: (
     TensorZ2.from_ndarray(sigmaz("z"), shape=[[1,1]]*2, qhape=[[0,1]]*2,
-                          dirs=[1,-1])
+                          dirs=[-1,1])
 )
 impurity_dict["ising3d"]["sigmax"] = lambda pars: (
     TensorZ2.from_ndarray(sigmaz("x"), shape=[[1,1]]*2, qhape=[[0,1]]*2,
-                          dirs=[1,-1])
+                          dirs=[-1,1])
 )
 impurity_dict["ising3d"]["sigmay"] = lambda pars: (
     TensorZ2.from_ndarray(sigmaz("y"), shape=[[1,1]]*2, qhape=[[0,1]]*2,
-                          dirs=[1,-1])
+                          dirs=[-1,1])
 )
 
 def ising3d_ham(beta):
@@ -288,7 +288,8 @@ def ising3d_U(beta):
     # Factor of -1 because U = - \partial log Z / \partial beta, and a
     # factor of 3 because there are two bonds per lattice site, and we
     # normalize by number of sites.
-    matrix *= -3
+    # DEBUG 2x2x4 check comment in
+    #matrix *= -3
     return matrix
 
 impurity_dict["ising3d"]["U"] = lambda pars: ising3d_U(pars["beta"])
@@ -313,6 +314,29 @@ def get_initial_impurity(pars, **kwargs):
         impurity_matrix = Tensor.from_ndarray(impurity_matrix.to_ndarray())
     A_indices = [-i for i in range(1, len(A_pure.shape)+1)]
     A_indices[0] *= -1
-    A_impure = scon((A_pure, impurity_matrix), (A_indices, [1,-1]))
+    # DEBUG 2x2x4 check comment in
+    #A_impure = scon((A_pure, impurity_matrix), (A_indices, [1,-1]))
+    # DEBUG 2x2x4
+    impurity_matrix *= -1
+    A_impure = (
+        scon((A_pure, impurity_matrix),
+             ([1,-2,-3,-4,-5,-6], [1,-1]))
+        +
+        scon((A_pure, impurity_matrix),
+             ([-1,2,-3,-4,-5,-6], [2,-2]))
+        +
+        scon((A_pure, impurity_matrix.transpose()),
+             ([-1,-2,3,-4,-5,-6], [3,-3]))
+        +
+        scon((A_pure, impurity_matrix.transpose()),
+             ([-1,-2,-3,4,-5,-6], [4,-4]))
+        +
+        scon((A_pure, impurity_matrix),
+             ([-1,-2,-3,-4,5,-6], [5,-5]))
+        +
+        scon((A_pure, impurity_matrix.transpose()),
+             ([-1,-2,-3,-4,-5,6], [6,-6]))
+    )*0.5
+    # END DEBUG
     return A_impure
 
