@@ -20,6 +20,9 @@ setupmodule_dict = {
     "As": lambda pars: (pars["algorithm"] + "_setup"
                         if pars["iter_count"] > 0
                         else "initialtensors_setup"),
+    "A_impure": lambda pars: (pars["algorithm"] + "_setup"
+                              if pars["iter_count"] > 0
+                              else "initialtensors_setup"),
     "As_impure": lambda pars: (pars["algorithm"] + "_setup"
                                if pars["iter_count"] > 0
                                else "initialtensors_setup"),
