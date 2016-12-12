@@ -131,7 +131,7 @@ def generate_A_impure(*args, pars=dict()):
 def generate_As_impure(*args, pars=dict()):
     A_impure, log_fact_impure = generate_A_impure(*args, pars=pars)
     A, log_fact_pure = generate_A(*args, pars=pars)
-    res = ((A, A_impure, A, A, A, A, A, A), log_fact_impure + log_fact_pure)
+    res = ((A, A, A_impure, A, A, A, A, A), log_fact_impure + log_fact_pure)
     # DEBUG
     #res = (tuple(rand_As_impure), log_fact_impure + log_fact_pure)
     #res = (tuple(rand_As_pure), log_fact_impure + log_fact_pure)
