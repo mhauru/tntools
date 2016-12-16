@@ -197,7 +197,8 @@ def get_initial_tensor_CQL_3d(pars):
     return Tensor.from_ndarray(T.reshape((16,16,16,16,16,16)))
 
 # DEBUG
-#global_random_T_0 = TensorZ2.random(shape=[[1,1]]*6, dirs=[1,1,-1,-1,1,-1])
+#global_random_T_0 = (TensorZ2.random(shape=[[1,1]]*6, dirs=[1,1,-1,-1,1,-1])
+#                     + 1j*TensorZ2.random(shape=[[1,1]]*6, dirs=[1,1,-1,-1,1,-1]))
 # END DEBUG
 
 def get_initial_tensor_ising_3d(pars):
