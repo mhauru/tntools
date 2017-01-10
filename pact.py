@@ -91,7 +91,9 @@ class Pact:
         try:
             with open(self.indexpath, "rb") as f:
                 index = pickle.load(f)
-        except FileNotFoundError:
+        # TODO Why do we need to catch EOFErrors as well? Why do they
+        # sometimes get raised? Corrupt files?
+        except (EOFError, FileNotFoundError):
             index = dict()
         fs = type(self).dict_to_hashable(d)
         index[fs] = filename
