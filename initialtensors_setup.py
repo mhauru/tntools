@@ -1,6 +1,7 @@
 import numpy as np
 import initialtensors
 import toolbox
+from scon import scon
 
 version = 1.0
 
@@ -26,6 +27,10 @@ parinfo = {
         "idfunc":  lambda dataname, pars: pars["model"] in twodee_models
     },
     "initial2x2x2": {
+        "default": False,
+        "idfunc":  lambda dataname, pars: pars["model"] in threedee_models
+    },
+    "initial2z": {
         "default": False,
         "idfunc":  lambda dataname, pars: pars["model"] in threedee_models
     },
@@ -106,6 +111,12 @@ def generate_A(*args, pars=dict()):
         A = toolbox.contract2x2(A)
     elif pars["initial2x2x2"]:
         A = toolbox.contract2x2x2(A)
+    elif pars["initial2z"]:
+        orig_dirs = A.dirs
+        A = scon((A, A),
+                 ([-11,-21,-31,1,-51,-61], [-12,1,-32,-42,-52,-62]))
+        join_dirs = [orig_dirs[0], orig_dirs[2], orig_dirs[4], orig_dirs[5]]
+        A = A.join_indices([0,1], [3,4], [6,7], [8,9], dirs=join_dirs)
     return (A, log_fact)
 
 
@@ -125,6 +136,14 @@ def generate_A_impure(*args, pars=dict()):
         msg = ("initial2x2, initial4x4 and initial2x2x2 unimplemented for"
                "initial impurities.")
         raise NotImplementedError(msg)
+    elif pars["initial2z"]:
+        A_pure = initialtensors.get_initial_tensor(pars)
+        A_impure = scon((A_impure, A_pure),
+                        ([-11,-21,-31,1,-51,-61], [-12,1,-32,-42,-52,-62]))
+        orig_dirs = A_pure.dirs
+        join_dirs = [orig_dirs[0], orig_dirs[2], orig_dirs[4], orig_dirs[5]]
+        A_impure = A_impure.join_indices([0,1], [3,4], [6,7], [8,9],
+                                         dirs=join_dirs)
     return (A_impure, log_fact)
 
 

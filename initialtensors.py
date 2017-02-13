@@ -313,31 +313,25 @@ def get_initial_impurity(pars, **kwargs):
     # clashes with how ising and potts initial tensors are generated.
     if not pars["symmetry_tensors"]:
         impurity_matrix = Tensor.from_ndarray(impurity_matrix.to_ndarray())
-    A_indices = [-i for i in range(1, len(A_pure.shape)+1)]
-    A_indices[0] *= -1
-    # DEBUG 2x2x4 check comment in
-    #A_impure = scon((A_pure, impurity_matrix), (A_indices, [1,-1]))
-    # DEBUG 2x2x4
     impurity_matrix *= -1
     A_impure = (
-        scon((A_pure, impurity_matrix),
-             ([1,-2,-3,-4,-5,-6], [1,-1]))
-        +
-        scon((A_pure, impurity_matrix),
-             ([-1,2,-3,-4,-5,-6], [2,-2]))
-        +
-        scon((A_pure, impurity_matrix.transpose()),
-             ([-1,-2,3,-4,-5,-6], [3,-3]))
-        +
+        #scon((A_pure, impurity_matrix),
+        #     ([1,-2,-3,-4,-5,-6], [1,-1]))
+        #+
+        #scon((A_pure, impurity_matrix),
+        #     ([-1,2,-3,-4,-5,-6], [2,-2]))
+        #+
+        #scon((A_pure, impurity_matrix.transpose()),
+        #     ([-1,-2,3,-4,-5,-6], [3,-3]))
+        #+
         scon((A_pure, impurity_matrix.transpose()),
              ([-1,-2,-3,4,-5,-6], [4,-4]))
-        +
-        scon((A_pure, impurity_matrix),
-             ([-1,-2,-3,-4,5,-6], [5,-5]))
-        +
-        scon((A_pure, impurity_matrix.transpose()),
-             ([-1,-2,-3,-4,-5,6], [6,-6]))
-    )*0.5
-    # END DEBUG
+        #+
+        #scon((A_pure, impurity_matrix),
+        #     ([-1,-2,-3,-4,5,-6], [5,-5]))
+        #+
+        #scon((A_pure, impurity_matrix.transpose()),
+        #     ([-1,-2,-3,-4,-5,6], [6,-6]))
+    )*3#*0.5
     return A_impure
 
