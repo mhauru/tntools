@@ -80,7 +80,8 @@ parinfo = {
 
 
 def prereq_pairs(dataname, pars):
-    if dataname in {"A", "As", "As_impure", "A_impure"}:
+    if dataname in {"A", "As", "As_impure", "As_impure111",
+                    "As_impure333", "A_impure"}:
         res = []
     else:
         raise ValueError("Unknown dataname: {}".format(dataname))
@@ -96,6 +97,10 @@ def generate(dataname, *args, pars=dict(), filelogger=None):
         res = generate_A_impure(*args, pars=pars)
     elif dataname == "As_impure":
         res = generate_As_impure(*args, pars=pars)
+    elif dataname == "As_impure111":
+        res = generate_As_impure111(*args, pars=pars)
+    elif dataname == "As_impure333":
+        res = generate_As_impure333(*args, pars=pars)
     else:
         raise ValueError("Unknown dataname: {}".format(dataname))
     return res
@@ -156,6 +161,22 @@ def generate_As_impure(*args, pars=dict()):
     #res = (tuple(rand_As_pure), log_fact_impure + log_fact_pure)
     # END DEBUG
     return res
+
+
+def generate_As_impure111(*args, pars=dict()):
+    A_impure, log_fact_impure = generate_A_impure(*args, pars=pars)
+    return A_impure, log_fact_impure
+
+
+def generate_As_impure333(*args, pars=dict()):
+    A_impure, log_fact_impure = generate_A_impure(*args, pars=pars)
+    A, log_fact_pure = generate_A(*args, pars=pars)
+    res = ((A, A_impure, A, A, A, A, A, A),
+           (log_fact_pure, log_fact_impure, log_fact_pure,
+            log_fact_pure, log_fact_pure, log_fact_pure, log_fact_pure,
+            log_fact_pure))
+    return res
+
 
 
 # DEBUG random tensor test
