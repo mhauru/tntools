@@ -156,10 +156,6 @@ def generate_As_impure(*args, pars=dict()):
     A_impure, log_fact_impure = generate_A_impure(*args, pars=pars)
     A, log_fact_pure = generate_A(*args, pars=pars)
     res = ((A, A_impure, A, A, A, A, A, A), log_fact_impure + log_fact_pure)
-    # DEBUG
-    #res = (tuple(rand_As_impure), log_fact_impure + log_fact_pure)
-    #res = (tuple(rand_As_pure), log_fact_impure + log_fact_pure)
-    # END DEBUG
     return res
 
 
@@ -171,10 +167,18 @@ def generate_As_impure111(*args, pars=dict()):
 def generate_As_impure333(*args, pars=dict()):
     A_impure, log_fact_impure = generate_A_impure(*args, pars=pars)
     A, log_fact_pure = generate_A(*args, pars=pars)
+    # This rotation is have the first coarse-graining be along the
+    # impurity leg.
+    A = A.transpose((0,4,2,5,3,1))
+    A_impure = A_impure.transpose((0,4,2,5,3,1))
     res = ((A, A_impure, A, A, A, A, A, A),
            (log_fact_pure, log_fact_impure, log_fact_pure,
             log_fact_pure, log_fact_pure, log_fact_pure, log_fact_pure,
             log_fact_pure))
+    # DEBUG
+    #res = (tuple(rand_As_impure), (0,)*8)
+    #res = (tuple(rand_As_pure), (0,)*8)
+    # END DEBUG
     return res
 
 
@@ -204,7 +208,36 @@ def generate_As_impure333(*args, pars=dict()):
 #rand_As_pure[6] = T.random(shape=[rand_As_pure[2].shape[2], rand_As_pure[5].shape[3], rand_As_pure[2].shape[0],
 #                                  rand_As_pure[5].shape[1], rand_As_pure[7].shape[5], rand_As_pure[7].shape[4]],
 #                           dirs=[1,1,-1,-1,1,-1])
+
+# For 3x3x3
+#rand_As_impure = [None]*8
+#rand_As_impure[0] = T.random(shape=[rand_As_pure[0].shape[0], [5,0], [5,1],
+#                                    rand_As_pure[0].shape[3], rand_As_pure[0].shape[4], [5,2]],
+#                             dirs=[1,1,-1,-1,1,-1])
+#rand_As_impure[2] = T.random(shape=[rand_As_pure[2].shape[0], rand_As_pure[2].shape[1], [5,3],
+#                                    [5,4], [5,5], rand_As_pure[2].shape[5]],
+#                             dirs=[1,1,-1,-1,1,-1])
+#rand_As_impure[5] = T.random(shape=[[6,0], [6,1], rand_As_pure[5].shape[2],
+#                                    rand_As_pure[5].shape[3], [6,2], rand_As_pure[5].shape[5]],
+#                             dirs=[1,1,-1,-1,1,-1])
+#rand_As_impure[7] = T.random(shape=[[6,3], rand_As_pure[7].shape[1], rand_As_pure[7].shape[2],
+#                                    [6,4], rand_As_pure[7].shape[4], [6,5]],
+#                             dirs=[1,1,-1,-1,1,-1])
 #
+#rand_As_impure[1] = T.random(shape=[rand_As_pure[1].shape[0], rand_As_impure[2].shape[3], rand_As_impure[5].shape[0],
+#                                    rand_As_pure[1].shape[3], rand_As_impure[0].shape[5], rand_As_pure[1].shape[5]],
+#                             dirs=[1,1,-1,-1,1,-1])
+#rand_As_impure[3] = T.random(shape=[rand_As_pure[3].shape[0], rand_As_pure[3].shape[1], rand_As_impure[7].shape[0],
+#                                    rand_As_impure[0].shape[1], rand_As_pure[3].shape[4], rand_As_impure[2].shape[4]],
+#                             dirs=[1,1,-1,-1,1,-1])
+#rand_As_impure[4] = T.random(shape=[rand_As_impure[0].shape[2], rand_As_impure[7].shape[3], rand_As_pure[4].shape[2],
+#                                    rand_As_pure[4].shape[3], rand_As_pure[4].shape[4], rand_As_impure[5].shape[4]],
+#                             dirs=[1,1,-1,-1,1,-1])
+#rand_As_impure[6] = T.random(shape=[rand_As_impure[2].shape[2], rand_As_pure[6].shape[1], rand_As_pure[6].shape[2],
+#                                    rand_As_impure[5].shape[1], rand_As_impure[7].shape[5], rand_As_pure[6].shape[5]],
+#                             dirs=[1,1,-1,-1,1,-1])
+
+# For 4x4x4
 #rand_As_impure = [None]*8
 #rand_As_impure[0] = T.random(shape=[[5,0], rand_As_pure[0].shape[1], rand_As_pure[0].shape[2],
 #                                    [5,1], [5,2], rand_As_pure[0].shape[5]],
@@ -231,5 +264,6 @@ def generate_As_impure333(*args, pars=dict()):
 #rand_As_impure[6] = T.random(shape=[rand_As_pure[6].shape[0], rand_As_impure[5].shape[3], rand_As_impure[2].shape[0],
 #                                    rand_As_pure[6].shape[3], rand_As_pure[6].shape[4], rand_As_impure[7].shape[4]],
 #                             dirs=[1,1,-1,-1,1,-1])
+
 # END DEBUG
 
