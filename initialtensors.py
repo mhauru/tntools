@@ -296,7 +296,7 @@ def ising3d_U(beta):
 impurity_dict["ising3d"]["U"] = lambda pars: ising3d_U(pars["beta"])
 
 
-def get_initial_impurity(pars, **kwargs):
+def get_initial_impurity(pars, legs=(3,), factor=3, **kwargs):
     if kwargs:
         pars = pars.copy()
         pars.update(kwargs)
@@ -314,24 +314,25 @@ def get_initial_impurity(pars, **kwargs):
     if not pars["symmetry_tensors"]:
         impurity_matrix = Tensor.from_ndarray(impurity_matrix.to_ndarray())
     impurity_matrix *= -1
-    A_impure = (
-        #scon((A_pure, impurity_matrix),
-        #     ([1,-2,-3,-4,-5,-6], [1,-1]))
-        #+
-        #scon((A_pure, impurity_matrix),
-        #     ([-1,2,-3,-4,-5,-6], [2,-2]))
-        #+
-        #scon((A_pure, impurity_matrix.transpose()),
-        #     ([-1,-2,3,-4,-5,-6], [3,-3]))
-        #+
-        scon((A_pure, impurity_matrix.transpose()),
-             ([-1,-2,-3,4,-5,-6], [4,-4]))
-        #+
-        #scon((A_pure, impurity_matrix),
-        #     ([-1,-2,-3,-4,5,-6], [5,-5]))
-        #+
-        #scon((A_pure, impurity_matrix.transpose()),
-        #     ([-1,-2,-3,-4,-5,6], [6,-6]))
-    )*3#*0.5
+    A_impure = 0
+    if 0 in legs:
+        A_impure += scon((A_pure, impurity_matrix),
+                         ([1,-2,-3,-4,-5,-6], [1,-1]))
+    if 1 in legs:
+        A_impure += scon((A_pure, impurity_matrix),
+                         ([-1,2,-3,-4,-5,-6], [2,-2]))
+    if 2 in legs:
+        A_impure += scon((A_pure, impurity_matrix.transpose()),
+                         ([-1,-2,3,-4,-5,-6], [3,-3]))
+    if 3 in legs:
+        A_impure += scon((A_pure, impurity_matrix.transpose()),
+                         ([-1,-2,-3,4,-5,-6], [4,-4]))
+    if 4 in legs:
+        A_impure += scon((A_pure, impurity_matrix),
+                         ([-1,-2,-3,-4,5,-6], [5,-5]))
+    if 5 in legs:
+        A_impure += scon((A_pure, impurity_matrix.transpose()),
+                         ([-1,-2,-3,-4,-5,6], [6,-6]))
+    A_impure *= factor
     return A_impure
 

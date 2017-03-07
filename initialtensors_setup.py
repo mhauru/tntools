@@ -135,7 +135,8 @@ def generate_As(*args, pars=dict()):
 
 
 def generate_A_impure(*args, pars=dict()):
-    A_impure = initialtensors.get_initial_impurity(pars)
+    legs = [3] if pars["initial2z"] else [5]
+    A_impure = initialtensors.get_initial_impurity(pars, legs=legs)
     log_fact = 0
     if pars["initial4x4"] or pars["initial2x2"] or pars["initial2x2x2"]:
         msg = ("initial2x2, initial4x4 and initial2x2x2 unimplemented for"
@@ -167,14 +168,9 @@ def generate_As_impure111(*args, pars=dict()):
 def generate_As_impure333(*args, pars=dict()):
     A_impure, log_fact_impure = generate_A_impure(*args, pars=pars)
     A, log_fact_pure = generate_A(*args, pars=pars)
-    # This rotation is have the first coarse-graining be along the
-    # impurity leg.
-    A = A.transpose((0,4,2,5,3,1))
-    A_impure = A_impure.transpose((0,4,2,5,3,1))
-    res = ((A, A_impure, A, A, A, A, A, A),
-           (log_fact_pure, log_fact_impure, log_fact_pure,
-            log_fact_pure, log_fact_pure, log_fact_pure, log_fact_pure,
-            log_fact_pure))
+    res = ((A_impure, A, A, A, A, A, A, A),
+           (log_fact_impure, log_fact_pure, log_fact_pure, log_fact_pure,
+            log_fact_pure, log_fact_pure, log_fact_pure, log_fact_pure))
     # DEBUG
     #res = (tuple(rand_As_impure), (0,)*8)
     #res = (tuple(rand_As_pure), (0,)*8)
