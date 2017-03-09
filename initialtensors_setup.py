@@ -120,7 +120,8 @@ def generate_A(*args, pars=dict()):
         orig_dirs = A.dirs
         A = scon((A, A),
                  ([-11,-21,-31,1,-51,-61], [-12,1,-32,-42,-52,-62]))
-        join_dirs = [orig_dirs[0], orig_dirs[2], orig_dirs[4], orig_dirs[5]]
+        join_dirs = (None if orig_dirs is None else
+                     [orig_dirs[0], orig_dirs[2], orig_dirs[4], orig_dirs[5]])
         A = A.join_indices([0,1], [3,4], [6,7], [8,9], dirs=join_dirs)
     return (A, log_fact)
 
@@ -147,7 +148,8 @@ def generate_A_impure(*args, pars=dict()):
         A_impure = scon((A_impure, A_pure),
                         ([-11,-21,-31,1,-51,-61], [-12,1,-32,-42,-52,-62]))
         orig_dirs = A_pure.dirs
-        join_dirs = [orig_dirs[0], orig_dirs[2], orig_dirs[4], orig_dirs[5]]
+        join_dirs = (None if orig_dirs is None else
+                     [orig_dirs[0], orig_dirs[2], orig_dirs[4], orig_dirs[5]])
         A_impure = A_impure.join_indices([0,1], [3,4], [6,7], [8,9],
                                          dirs=join_dirs)
     return (A_impure, log_fact)
