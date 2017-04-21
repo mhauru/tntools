@@ -6,7 +6,7 @@ from tensors.symmetrytensors import TensorZ2, TensorZ3, TensorU1
 # Functions for parsing different types
 def parse_list_of_ints(string):
     if string[0:6] == "range(":
-        t = string[6:-1].replace(" ", "").split(" ,") 
+        t = string[6:-1].replace(" ", "").split(",") 
         t = tuple(map(int, t))
         return list(range(*t))
     if string:
