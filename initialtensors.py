@@ -1,4 +1,5 @@
 import numpy as np
+import itertools as itt
 from scon import scon
 from tensors.tensor import Tensor
 from tensors.symmetrytensors import TensorZ2, TensorZ3, TensorU1
@@ -46,6 +47,8 @@ def get_initial_tensor(pars, **kwargs):
         return get_initial_sixvertex_tensor(pars)
     elif model_name == "ising3d":
         return get_initial_tensor_ising_3d(pars)
+    elif model_name == "potts33d":
+        return get_initial_tensor_potts33d(pars)
     ham = hamiltonians[model_name](pars)
     boltz = np.exp(-pars["beta"]*ham)
     T_0 = np.einsum('ab,bc,cd,da->abcd', boltz, boltz, boltz, boltz)
@@ -218,11 +221,45 @@ def get_initial_tensor_ising_3d(pars):
     return T_0
 
 
+def get_initial_tensor_potts33d(pars):
+    beta = pars["beta"]
+    Q = potts_Q(beta, 3)
+    A = np.einsum('ai,aj,ak,al,am,an -> ijklmn',
+                  Q, Q, Q.conjugate(), Q.conjugate(), Q, Q.conjugate())
+    if np.linalg.norm(np.imag(A)) < 1e-12:
+        A = np.real(A)
+    if pars["symmetry_tensors"]:
+        cls, dim, qim = symmetry_classes_dims_qims["potts3"]
+        A = cls.from_ndarray(A, shape=[dim]*6, qhape=[qim]*6,
+                             dirs=[1,1,-1,-1,1,-1])
+    else:
+        A = Tensor.from_ndarray(A)
+    return A
+
+
+def potts_Q(beta, q):
+    Q = np.zeros((q,q), np.complex_)
+    for i, j in itt.product(range(q), repeat=2):
+        Q[i,j] = (np.exp(1j*2*np.pi*i*j/q)
+                  * np.sqrt((np.exp(beta) - 1 + (q if j==0 else 0))/ q))
+    return Q
+
+
+def potts_Q_inv(beta, q):
+    q = 3
+    Q = np.zeros((q,q), np.complex_)
+    for i, j in itt.product(range(q), repeat=2):
+        Q[i,j] = (np.exp(-1j*2*np.pi*i*j/q)
+                  * np.sqrt(1/(q*(np.exp(beta) - 1 + (q if i==0 else 0)))))
+    return Q
+
+
 # # # # # # # # # # # # # # # # Impurities # # # # # # # # # # # # # # # #
 
 
 impurity_dict = dict()
-# Ising
+
+# 3D Ising
 ising_dict = {
     "id": np.eye(2),
     "sigmax": np.real(sigma("x")),
@@ -296,6 +333,26 @@ def ising3d_U(beta):
 impurity_dict["ising3d"]["U"] = lambda pars: ising3d_U(pars["beta"])
 
 
+# 3D Potts3
+impurity_dict["potts33d"] = dict()
+
+def potts33d_U(beta):
+    Q = potts_Q(beta, 3)
+    energymat = (Q.dot(Q.conjugate().transpose()) * np.eye(Q.shape[0]))
+    matrix = (potts_Q_inv(beta, 3)
+              .dot(energymat)
+              .dot(potts_Q_inv(beta, 3).conjugate().transpose()))
+    if np.linalg.norm(np.imag(matrix)) < 1e-12:
+        matrix = np.real(matrix)
+    cls, dim, qim = symmetry_classes_dims_qims["potts3"]
+    matrix = cls.from_ndarray(matrix, shape=[dim]*2,
+                              qhape=[qim]*2, dirs=[-1,1])
+    return matrix
+
+impurity_dict["potts33d"]["U"] = lambda pars: potts33d_U(pars["beta"])
+
+
+
 def get_initial_impurity(pars, legs=(3,), factor=3, **kwargs):
     if kwargs:
         pars = pars.copy()
@@ -310,7 +367,7 @@ def get_initial_impurity(pars, legs=(3,), factor=3, **kwargs):
                .format(model, impurity))
         raise ValueError(msg)
     # TODO The expectation that everything is in the symmetry basis
-    # clashes with how ising and potts initial tensors are generated.
+    # clashes with how 2D ising and potts initial tensors are generated.
     if not pars["symmetry_tensors"]:
         impurity_matrix = Tensor.from_ndarray(impurity_matrix.to_ndarray())
     impurity_matrix *= -1
@@ -335,4 +392,5 @@ def get_initial_impurity(pars, legs=(3,), factor=3, **kwargs):
                          ([-1,-2,-3,-4,-5,6], [6,-6]))
     A_impure *= factor
     return A_impure
+
 

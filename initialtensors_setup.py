@@ -6,7 +6,7 @@ from scon import scon
 version = 1.0
 
 twodee_models = {"ising", "potts3", "sixvertex"}
-threedee_models = {"ising3d"}
+threedee_models = {"ising3d", "potts33d"}
 
 parinfo = {
     # Generic parameters
@@ -44,7 +44,7 @@ parinfo = {
     "beta": {
         "default": 1.,
         "idfunc":  lambda dataname, pars: (
-            pars["model"] in {"ising", "potts3", "ising3d"}
+            pars["model"] in {"ising", "potts3", "ising3d", "potts33d"}
         )
     },
 
