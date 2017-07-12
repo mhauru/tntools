@@ -1,6 +1,6 @@
 import numpy as np
 import itertools as itt
-from scon import scon
+from ncon import ncon
 from tensors import Tensor
 from tensors import TensorZ2, TensorZ3, TensorU1
 
@@ -54,7 +54,7 @@ def get_initial_tensor(pars, **kwargs):
     T_0 = np.einsum('ab,bc,cd,da->abcd', boltz, boltz, boltz, boltz)
     u = symmetry_bases[model_name]
     u_dg = u.T.conjugate()
-    T_0 = scon((T_0, u, u, u_dg, u_dg),
+    T_0 = ncon((T_0, u, u, u_dg, u_dg),
                ([1,2,3,4], [-1,1], [-2,2], [3,-3], [4,-4]))
     if pars["symmetry_tensors"]:
         cls, dim, qim = symmetry_classes_dims_qims[model_name]
@@ -110,7 +110,7 @@ def get_KW_tensor(pars):
 
     u = symmetry_bases["ising"]
     u_dg = u.T.conjugate()
-    D_sigma = scon((D_sigma, u, u, u_dg, u_dg),
+    D_sigma = ncon((D_sigma, u, u, u_dg, u_dg),
                    ([1,2,3,4], [-1,1], [-2,2], [3,-3], [4,-4]))
     if pars["symmetry_tensors"]:
         D_sigma = TensorZ2.from_ndarray(D_sigma, shape=[[1,1]]*4,
@@ -123,7 +123,7 @@ def get_KW_tensor(pars):
 def get_KW_unitary(pars):
     eye = np.eye(2, dtype=np.complex_)
     CZ = Csigma_np("z")
-    U = scon((CZ,
+    U = ncon((CZ,
               R(np.pi/4, 'z'), R(np.pi/4, 'x'),
               R(np.pi/4, 'y')),
              ([-1,-2,5,6],
@@ -131,7 +131,7 @@ def get_KW_unitary(pars):
               [-4,3]))
     u = symmetry_bases["ising"]
     u_dg = u.T.conjugate()
-    U = scon((U, u, u_dg, u_dg, u),
+    U = ncon((U, u, u_dg, u_dg, u),
              ([1,2,3,4], [-1,1], [-2,2], [3,-3], [4,-4]))
     U *= -1j
     if pars["symmetry_tensors"]:
@@ -184,7 +184,7 @@ def get_initial_tensor_CDL_3d(pars):
 
 def get_initial_tensor_CDL_3d_v2(pars):
     delta = np.eye(2, dtype = pars["dtype"])
-    T = scon((delta,)*12,
+    T = ncon((delta,)*12,
              ([-11,-21], [-12,-41], [-13,-51], [-14,-61],
               [-31,-22], [-32,-42], [-33,-52], [-34,-62],
               [-23,-63], [-64,-43], [-44,-53], [-54,-24]))
@@ -269,7 +269,7 @@ ising_dict = {
 for k, M in ising_dict.items():
     u = symmetry_bases["ising"]
     u_dg = u.T.conjugate()
-    M = scon((M, u, u_dg),
+    M = ncon((M, u, u_dg),
              ([1,2], [-1,1], [-2,2]))
     cls, dim, qim = symmetry_classes_dims_qims["ising"]
     M = cls.from_ndarray(M, shape=[dim]*2, qhape=[qim]*2,
@@ -372,22 +372,22 @@ def get_initial_impurity(pars, legs=(3,), factor=3, **kwargs):
     impurity_matrix *= -1
     A_impure = 0
     if 0 in legs:
-        A_impure += scon((A_pure, impurity_matrix),
+        A_impure += ncon((A_pure, impurity_matrix),
                          ([1,-2,-3,-4,-5,-6], [1,-1]))
     if 1 in legs:
-        A_impure += scon((A_pure, impurity_matrix),
+        A_impure += ncon((A_pure, impurity_matrix),
                          ([-1,2,-3,-4,-5,-6], [2,-2]))
     if 2 in legs:
-        A_impure += scon((A_pure, impurity_matrix.transpose()),
+        A_impure += ncon((A_pure, impurity_matrix.transpose()),
                          ([-1,-2,3,-4,-5,-6], [3,-3]))
     if 3 in legs:
-        A_impure += scon((A_pure, impurity_matrix.transpose()),
+        A_impure += ncon((A_pure, impurity_matrix.transpose()),
                          ([-1,-2,-3,4,-5,-6], [4,-4]))
     if 4 in legs:
-        A_impure += scon((A_pure, impurity_matrix),
+        A_impure += ncon((A_pure, impurity_matrix),
                          ([-1,-2,-3,-4,5,-6], [5,-5]))
     if 5 in legs:
-        A_impure += scon((A_pure, impurity_matrix.transpose()),
+        A_impure += ncon((A_pure, impurity_matrix.transpose()),
                          ([-1,-2,-3,-4,-5,6], [6,-6]))
     A_impure *= factor
     return A_impure

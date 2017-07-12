@@ -1,10 +1,10 @@
 import numpy as np
 import collections
 
-""" A module for the function scon, which does contractions of several tensors.
+""" A module for the function ncon, which does contractions of several tensors.
 """
 
-def scon(AA, v, order=None, forder=None, check_indices=True):
+def ncon(AA, v, order=None, forder=None, check_indices=True):
     """ AA = [A1, A2, ..., Ap] list of tensors.
 
     v = (v1, v2, ..., vp) tuple of lists of indices e.g. v1 = [3 4 -1] labels
@@ -47,7 +47,7 @@ def scon(AA, v, order=None, forder=None, check_indices=True):
         # Raise a RuntimeError if the indices are wrong.
         do_check_indices(AA, v, order, forder)
 
-    # If the graph is disconnected, connect it with trivial indices that
+    # If the graph is dinconnected, connect it with trivial indices that
     # will be contracted at the very end.
     connect_graph(AA, v, order)
 
@@ -175,10 +175,10 @@ def get_tcon(v, index):
     # If check_indices is called and it does its work properly then these
     # checks should in fact be unnecessary.
     if l > 2:
-        raise ValueError('In scon.get_tcon, more than two tensors share a '
+        raise ValueError('In ncon.get_tcon, more than two tensors share a '
                 'contraction index.')
     elif l < 1:
-        raise ValueError('In scon.get_tcon, less than one tensor share a '
+        raise ValueError('In ncon.get_tcon, less than one tensor share a '
                 'contraction index.')
     elif l == 1:
         # The contraction is a trace.
@@ -186,7 +186,7 @@ def get_tcon(v, index):
         if how_many != 2:
             # Only one tensor has this index but it is not a trace because it
             # does not occur twice for that tensor.
-            raise ValueError('In scon.get_tcon, a trace index is listed '
+            raise ValueError('In ncon.get_tcon, a trace index is listed '
                     '!= 2 times for the same tensor.')
     return tcon
 
@@ -255,7 +255,7 @@ def do_check_indices(AA, v, order, forder):
     
     #1)
     if len(AA) != len(v):
-        raise ValueError(('In scon.do_check_indices, the number of tensors %i'
+        raise ValueError(('In ncon.do_check_indices, the number of tensors %i'
                             ' does not match the number of index lists %i')
                            %(len(AA), len(v)))
 
@@ -264,7 +264,7 @@ def do_check_indices(AA, v, order, forder):
     shapes = list(map(lambda A: list(A.shape), AA))
     for i,inds in enumerate(v):
         if len(inds) != len(shapes[i]):
-            raise ValueError(('In scon.do_check_indices, len(v[%i])=%i '
+            raise ValueError(('In ncon.do_check_indices, len(v[%i])=%i '
                                 'does not match the numbers of indices of '
                                 'AA[%i] = %i')%(i, len(inds), i,
                                                 len(shapes[i])))
@@ -282,7 +282,7 @@ def do_check_indices(AA, v, order, forder):
     forder_groups = [[1 for fo in v_sum if fo == e] for e in forder]
     for i, o in enumerate(order_groups):
         if len(o) != 2:
-            raise ValueError(('In scon.do_check_indices, the contracted index '
+            raise ValueError(('In ncon.do_check_indices, the contracted index '
                     '%i is not featured exactly twice in v.')%order[i])
         else:
             A0, ind0 = o[0]
@@ -292,14 +292,14 @@ def do_check_indices(AA, v, order, forder):
             except AttributeError:
                 compatible = AA[A0].shape[ind0] == AA[A1].shape[ind1]
             if not compatible: 
-                raise ValueError('In scon.do_check_indices, for the '
+                raise ValueError('In ncon.do_check_indices, for the '
                                  'contraction index %i, the leg %i of tensor '
                                  'number %i and the leg %i of tensor number '
                                  '%i are not compatible.'
                                  %(order[i], ind0, A0, ind1, A1))
     for i, fo in enumerate(forder_groups):
         if len(fo) != 1:
-            raise ValueError(('In scon.do_check_indices, the free index '
+            raise ValueError(('In ncon.do_check_indices, the free index '
                     '%i is not featured exactly once in v.')%forder[i])
 
     # All is well if we made it here.

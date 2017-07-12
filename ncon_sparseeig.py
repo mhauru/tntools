@@ -5,7 +5,7 @@ import operator as opr
 import itertools as itt
 import functools as fct
 import scipy.sparse.linalg as spsla
-from scon import scon
+from ncon import ncon
 from tensors import AbelianTensor
 from tensors import Tensor
 
@@ -13,7 +13,7 @@ from tensors import Tensor
 # Commonalities
 
 def get_commons(tensor_list):
-    errmsg = "tensor_list in scon_sparseeig has inhomogenous "
+    errmsg = "tensor_list in ncon_sparseeig has inhomogenous "
 
     types = set(map(type, tensor_list))
     if len(types) > 1:
@@ -251,8 +251,8 @@ def common_preprocess(tensor_list, index_list, matvec_order, rmatvec_order,
         v = np.reshape(v, right_flatdims)
         v = commontype.from_ndarray(v, shape=right_dims, qhape=right_qims,
                                     charge=charge, dirs=neg_right_dirs)
-        scon_list = tensor_list + [v]
-        Av = scon(scon_list, matvec_index_list, order=matvec_order)
+        ncon_list = tensor_list + [v]
+        Av = ncon(ncon_list, matvec_index_list, order=matvec_order)
         Av = Av.to_ndarray()
         Av = np.transpose(Av, left_perm)
         Av = np.reshape(Av, (left_flatdim,))
@@ -264,8 +264,8 @@ def common_preprocess(tensor_list, index_list, matvec_order, rmatvec_order,
         v = np.reshape(v, left_flatdims)
         v = commontype.from_ndarray(v, shape=left_dims, qhape=left_qims,
                                     charge=charge, dirs=neg_left_dirs)
-        scon_list = tensor_list + [v]
-        Av = scon(scon_list, rmatvec_index_list, order=rmatvec_order)
+        ncon_list = tensor_list + [v]
+        Av = ncon(ncon_list, rmatvec_index_list, order=rmatvec_order)
         Av = Av.to_ndarray()
         Av = np.transpose(Av, right_perm)
         Av = np.reshape(Av, (right_flatdim,))
@@ -286,8 +286,8 @@ def common_preprocess(tensor_list, index_list, matvec_order, rmatvec_order,
             new_dirs = None
         v = commontype.from_ndarray(v, shape=right_dims+[[d]],
                                     qhape=new_qhape, dirs=new_dirs)
-        scon_list = tensor_list + [v]
-        Av = scon(scon_list, matmat_index_list, order=matmat_order)
+        ncon_list = tensor_list + [v]
+        Av = ncon(ncon_list, matmat_index_list, order=matmat_order)
         Av = Av.to_ndarray()
         Av = np.transpose(Av, left_perm+[len(left_perm)])
         Av = np.reshape(Av, (left_flatdim, d))
@@ -316,7 +316,7 @@ def common_preprocess(tensor_list, index_list, matvec_order, rmatvec_order,
 
 # SVD
 
-def scon_sparsesvd(tensor_list, index_list, matvec_order=None,
+def ncon_sparsesvd(tensor_list, index_list, matvec_order=None,
                    rmatvec_order=None, matmat_order=None,
                    right_inds=None, left_inds=None, print_progress=False,
                    qnums_do=(), chis=None, eps=0., return_error=False,
@@ -438,10 +438,10 @@ def get_svd(matvec, rmatvec, matmat, n_sings, left_dims, right_dims,
 
 # Eig
 
-def scon_sparseeig(tensor_list, index_list, right_inds, left_inds,
+def ncon_sparseeig(tensor_list, index_list, right_inds, left_inds,
                    matvec_order=None, rmatvec_order=None, matmat_order=None,
                    hermitian=False, print_progress=False, qnums_do=(),
-                   return_eigenvectors=True, scon_func=None, chis=None,
+                   return_eigenvectors=True, ncon_func=None, chis=None,
                    eps=0., return_error=False, truncate=True, 
                    trunc_err_func=None, norm_sq=None, **kwargs):
     (matvec, rmatvec, matmat,

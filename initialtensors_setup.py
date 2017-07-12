@@ -1,7 +1,7 @@
 import numpy as np
 import initialtensors
 import toolbox
-from scon import scon
+from ncon import ncon
 
 version = 1.0
 
@@ -118,7 +118,7 @@ def generate_A(*args, pars=dict()):
         A = toolbox.contract2x2x2(A)
     elif pars["initial2z"]:
         orig_dirs = A.dirs
-        A = scon((A, A),
+        A = ncon((A, A),
                  ([-11,-21,-31,1,-51,-61], [-12,1,-32,-42,-52,-62]))
         join_dirs = (None if orig_dirs is None else
                      [orig_dirs[0], orig_dirs[2], orig_dirs[4], orig_dirs[5]])
@@ -145,7 +145,7 @@ def generate_A_impure(*args, pars=dict()):
         raise NotImplementedError(msg)
     elif pars["initial2z"]:
         A_pure = initialtensors.get_initial_tensor(pars)
-        A_impure = scon((A_impure, A_pure),
+        A_impure = ncon((A_impure, A_pure),
                         ([-11,-21,-31,1,-51,-61], [-12,1,-32,-42,-52,-62]))
         orig_dirs = A_pure.dirs
         join_dirs = (None if orig_dirs is None else

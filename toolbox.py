@@ -2,7 +2,7 @@ import numpy as np
 import collections
 from tensors import Tensor, TensorZ2, TensorZ3
 from functools import reduce
-from scon import scon
+from ncon import ncon
 
 
 def contract2x2(T_list, vert_flip=False):
@@ -27,7 +27,7 @@ def contract2x2_Tensor(T_list, vert_flip=False):
             T.transpose((0,3,2,1))
         flip(T_list[2])
         flip(T_list[3])
-    T4 = scon((T_list[0], T_list[1], T_list[2], T_list[3]),
+    T4 = ncon((T_list[0], T_list[1], T_list[2], T_list[3]),
               ([-2,-3,1,3], [1,-4,-6,4], [-1,3,2,-7], [2,4,-5,-8]))
     T4 = T4.join_indices((0,1), (2,3), (4,5), (6,7), dirs=[1,1,-1,-1])
     return T4
@@ -38,7 +38,7 @@ def contract2x2_ndarray(T_list, vert_flip=False):
             return np.transpose(T.conjugate(), (0,3,2,1))
         T_list[2] = flip(T_list[2])
         T_list[3] = flip(T_list[3])
-    T4 = scon((T_list[0], T_list[1], T_list[2], T_list[3]),
+    T4 = ncon((T_list[0], T_list[1], T_list[2], T_list[3]),
               ([-2,-3,1,3], [1,-4,-6,4], [-1,3,2,-7], [2,4,-5,-8]))
     sh = T4.shape
     S = np.reshape(T4, (sh[0]*sh[1], sh[2]*sh[3], sh[4]*sh[5], sh[6]*sh[7]))
@@ -62,13 +62,13 @@ def contract2x2x2(T_list):
 
 
 def contract2x2x2_Tensor_flipped(T):
-    T2 = scon((T, T.conjugate()),
+    T2 = ncon((T, T.conjugate()),
               ([11,-21,-31,-41,-51,-61],
                [11,-22,-32,-42,-52,-62]))
-    T4 = scon((T2, T2.conjugate()),
+    T4 = ncon((T2, T2.conjugate()),
               ([-11,-21,-31,-41,-51,-61,-71,-81,91,101],
                [-12,-22,-32,-42,-52,-62,-72,-82,91,101]))
-    T8 = scon((T4, T4.conjugate()),
+    T8 = ncon((T4, T4.conjugate()),
               ([11,21,31,41,-51,-61,-71,-81,-91,-101,-111,-121,-131,-141,-151,-161],
                [11,21,31,41,-52,-62,-72,-82,-92,-102,-112,-122,-132,-142,-152,-162]))
     T8 = T8.transpose((6,7,4,5,
@@ -84,7 +84,7 @@ def contract2x2x2_Tensor_flipped(T):
 
 
 def contract2x2x2_Tensor(T_list):
-    Tcube = scon((T_list[0], T_list[1], T_list[2], T_list[3], T_list[4],
+    Tcube = ncon((T_list[0], T_list[1], T_list[2], T_list[3], T_list[4],
                   T_list[5], T_list[6], T_list[7]),
                  ([-2,-5,7,3,-18,1], [7,-8,-10,9,-19,6],
                   [12,9,-9,-14,20,10], [-1,3,12,-13,-17,4],
@@ -97,7 +97,7 @@ def contract2x2x2_Tensor(T_list):
 
 
 def contract2x2x2_ndarray(T_list):
-    Tcube = scon((T_list[0], T_list[1], T_list[2], T_list[3], T_list[4],
+    Tcube = ncon((T_list[0], T_list[1], T_list[2], T_list[3], T_list[4],
                   T_list[5], T_list[6], T_list[7]),
                  ([-2,-5,7,3,-18,1], [7,-8,-10,9,-19,6],
                   [12,9,-9,-14,20,10], [-1,3,12,-13,-17,4],
@@ -391,7 +391,7 @@ def potts3T_0(beta, J, dtype=np.complex_, Z3=True, ndarray=False):
         u = np.array([[1, 1, 1], [1, phase, phase**2], [1, phase**2, phase]],
                      dtype=dtype) / np.sqrt(3)
         u_dg = u.T.conjugate()
-        T_0 = scon((T_0, u, u, u_dg, u_dg),
+        T_0 = ncon((T_0, u, u, u_dg, u_dg),
                    ([1,2,3,4], [1,-1], [2,-2], [3,-3], [4,-4]))
         T_0 = TensorZ3.from_ndarray(
                 T_0, shape=[[1,1,1],[1,1,1],[1,1,1],[1,1,1]], dirs=[1,1,-1,-1])
@@ -408,7 +408,7 @@ def isingT_0(beta, J, H=0, dtype=np.complex_, Z2=True, ndarray=False):
     if Z2:
         u = np.array([[1,1],[1,-1]], dtype=dtype)/np.sqrt(2)
         u_dg = u.T.conjugate()
-        T_0 = scon((T_0, u, u, u_dg, u_dg),
+        T_0 = ncon((T_0, u, u, u_dg, u_dg),
                    ([1,2,3,4], [-1,1], [-2,2], [-3,3], [-4,4]))
         T_0 = TensorZ2.from_ndarray(T_0,\
                 shape=[[1,1],[1,1],[1,1],[1,1]], dirs=[1,1,-1,-1])
@@ -426,7 +426,7 @@ def ising3_initialtensor(beta, J, H=0, dtype=np.complex_, Z2=True):
     if Z2:
         u = np.array([[1,1],[1,-1]], dtype=dtype)/np.sqrt(2)
         u_dg = u.T.conjugate()
-        T_0 = scon((T_0,
+        T_0 = ncon((T_0,
                     u, u, u, u,
                     u_dg, u_dg, u_dg, u_dg),
                    ([1,2,3,4,5,6,7,8],

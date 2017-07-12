@@ -17,7 +17,7 @@ from timer import Timer
 from matplotlib import pyplot
 from TNR import tnr_step
 from TRG import trg_step
-from scon import scon
+from ncon import ncon
 from pathfinder import PathFinder
 from custom_parser import parse_argv
 
@@ -169,7 +169,7 @@ def generate_first_tensor(pars):
         except TypeError:
             qim = None
         eye = type(T).eye(dim=dim, qim=qim)
-        u = scon((eye, eye, eye, eye), ([-1,-5], [-2,-6], [-3,-7], [-4,-9]))
+        u = ncon((eye, eye, eye, eye), ([-1,-5], [-2,-6], [-3,-7], [-4,-9]))
         swap = u.transpose((0,1,2,3,7,6,5,4))
         swap = swap.join_indices([0,1,2,3], [4,5,6,7], dirs=[1,1])
         gauges["G_vh"] = swap
@@ -181,7 +181,7 @@ def generate_first_tensor(pars):
         except TypeError:
             qim = None
         eye = type(T).eye(dim=dim, qim=qim)
-        u = scon((eye, eye, eye, eye), ([-1,-5], [-2,-6], [-3,-7], [-4,-9]))
+        u = ncon((eye, eye, eye, eye), ([-1,-5], [-2,-6], [-3,-7], [-4,-9]))
         swap = u.transpose((0,1,2,3,7,6,5,4))
         swap = swap.join_indices([0,1,2,3], [4,5,6,7], dirs=[1,1])
         gauges["G_hv"] = swap
@@ -197,7 +197,7 @@ def generate_first_tensor(pars):
         except TypeError:
             qim = None
         eye = type(T).eye(dim=dim, qim=qim)
-        u = scon((eye, eye), ([-1,-3], [-2,-4]))
+        u = ncon((eye, eye), ([-1,-3], [-2,-4]))
         swap = u.transpose((0,1,3,2))
         swap = swap.join_indices([0,1], [2,3], dirs=[1,1])
         gauges["G_vh"] = swap
@@ -209,7 +209,7 @@ def generate_first_tensor(pars):
         except TypeError:
             qim = None
         eye = type(T).eye(dim=dim, qim=qim)
-        u = scon((eye, eye), ([-1,-3], [-2,-4]))
+        u = ncon((eye, eye), ([-1,-3], [-2,-4]))
         swap = u.transpose((0,1,3,2))
         swap = swap.join_indices([0,1], [2,3], dirs=[1,1])
         gauges["G_hv"] = swap
@@ -310,7 +310,7 @@ def generate_normalized_tensor(pars, id_pars):
         T, log_fact = get_tensor(pars=pars, iter_count=i, infotime=False)
         tensors_and_log_facts.append((T, log_fact))
     tensors, log_facts = zip(*tensors_and_log_facts)
-    Zs = np.array([scon(T, [1,2,1,2]).norm() for T in tensors])
+    Zs = np.array([ncon(T, [1,2,1,2]).norm() for T in tensors])
     log_Zs = np.log(Zs)
     log_Zs += np.array(log_facts)
 
