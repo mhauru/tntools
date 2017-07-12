@@ -1,6 +1,6 @@
 import numpy as np
 import collections
-from tensors import tensor, symmetrytensors, tensorcommon
+from tensors import Tensor, TensorZ2, TensorZ3
 from functools import reduce
 from scon import scon
 
@@ -393,10 +393,10 @@ def potts3T_0(beta, J, dtype=np.complex_, Z3=True, ndarray=False):
         u_dg = u.T.conjugate()
         T_0 = scon((T_0, u, u, u_dg, u_dg),
                    ([1,2,3,4], [1,-1], [2,-2], [3,-3], [4,-4]))
-        T_0 = symmetrytensors.TensorZ3.from_ndarray(
+        T_0 = TensorZ3.from_ndarray(
                 T_0, shape=[[1,1,1],[1,1,1],[1,1,1],[1,1,1]], dirs=[1,1,-1,-1])
     elif not ndarray:
-        T_0 = tensor.Tensor.from_ndarray(T_0)
+        T_0 = Tensor.from_ndarray(T_0)
     return T_0
 
 
@@ -410,10 +410,10 @@ def isingT_0(beta, J, H=0, dtype=np.complex_, Z2=True, ndarray=False):
         u_dg = u.T.conjugate()
         T_0 = scon((T_0, u, u, u_dg, u_dg),
                    ([1,2,3,4], [-1,1], [-2,2], [-3,3], [-4,4]))
-        T_0 = symmetrytensors.TensorZ2.from_ndarray(T_0,\
+        T_0 = TensorZ2.from_ndarray(T_0,\
                 shape=[[1,1],[1,1],[1,1],[1,1]], dirs=[1,1,-1,-1])
     elif not ndarray:
-        T_0 = tensor.Tensor.from_ndarray(T_0)
+        T_0 = Tensor.from_ndarray(T_0)
     return T_0
 
 
@@ -432,10 +432,10 @@ def ising3_initialtensor(beta, J, H=0, dtype=np.complex_, Z2=True):
                    ([1,2,3,4,5,6,7,8],
                     [-1,1], [-2,2], [-3,3], [-4,4],
                     [-5,5], [-6,6], [-7,7], [-8,8]))
-        T_0 = symmetrytensors.TensorZ2.from_ndarray(T_0,\
+        T_0 = TensorZ2.from_ndarray(T_0,\
                 shape=[[1,1]]*8, dirs=[1,1,1,1,-1,-1,-1,-1])
     else:
-        T_0 = tensor.Tensor.from_ndarray(T_0)
+        T_0 = Tensor.from_ndarray(T_0)
     return T_0
 
 

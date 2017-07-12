@@ -1,7 +1,7 @@
 import argparse
 import numpy as np
-from tensors.tensor import Tensor
-from tensors.symmetrytensors import TensorZ2, TensorZ3, TensorU1
+from tensors import Tensor
+from tensors import TensorZ2, TensorZ3, TensorU1
 
 # Functions for parsing different types
 def parse_list_of_ints(string):

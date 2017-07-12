@@ -1,8 +1,8 @@
 import numpy as np
 import itertools as itt
 from scon import scon
-from tensors.tensor import Tensor
-from tensors.symmetrytensors import TensorZ2, TensorZ3, TensorU1
+from tensors import Tensor
+from tensors import TensorZ2, TensorZ3, TensorU1
 
 """ Module for getting the initial tensors for different models. """
 
@@ -350,7 +350,6 @@ def potts33d_U(beta):
     return matrix
 
 impurity_dict["potts33d"]["U"] = lambda pars: potts33d_U(pars["beta"])
-
 
 
 def get_initial_impurity(pars, legs=(3,), factor=3, **kwargs):

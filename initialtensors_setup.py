@@ -182,7 +182,7 @@ def generate_As_impure333(*args, pars=dict()):
 
 
 # DEBUG random tensor test
-#from tensors.symmetrytensors import TensorZ2
+#from tensors import TensorZ2
 #T = TensorZ2
 #rand_As_pure = [None]*8
 #rand_As_pure[0] = T.random(shape=[[1,0], [1,1], [1,2], [1,3], [1,4], [1,5]],

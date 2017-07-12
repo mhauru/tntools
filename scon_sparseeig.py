@@ -6,8 +6,8 @@ import itertools as itt
 import functools as fct
 import scipy.sparse.linalg as spsla
 from scon import scon
-from tensors.abeliantensor import AbelianTensor
-from tensors.tensor import Tensor
+from tensors import AbelianTensor
+from tensors import Tensor
 
 
 # Commonalities
