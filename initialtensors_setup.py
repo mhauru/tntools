@@ -1,6 +1,6 @@
 import numpy as np
 import initialtensors
-import toolbox
+from tensors import TensorCommon
 from ncon import ncon
 
 version = 1.0
@@ -106,16 +106,67 @@ def generate(dataname, *args, pars=dict(), filelogger=None):
     return res
 
 
+
+def contract2x2(A_list):
+    """ Takes an iterable of rank 4 tensors and contracts a square made
+    of them to a single rank 4 tensor. If only a single tensor is given
+    4 copies of the same tensor are used.
+    """
+    if isinstance(A_list, (np.ndarray, TensorCommon)):
+        A = A_list
+        A_list = [A]*4
+    else:
+        A_list = list(A_list)
+    A4 = ncon((A_list[0], A_list[1], A_list[2], A_list[3]),
+              ([-2,-3,1,3], [1,-4,-6,4], [-1,3,2,-7], [2,4,-5,-8]))
+    A4 = A4.join_indices((0,1), (2,3), (4,5), (6,7), dirs=[1,1,-1,-1])
+    return A4
+
+def contract2x2_ndarray(T_list, vert_flip=False):
+    if vert_flip:
+        def flip(T):
+            return np.transpose(T.conjugate(), (0,3,2,1))
+        T_list[2] = flip(T_list[2])
+        T_list[3] = flip(T_list[3])
+    T4 = ncon((T_list[0], T_list[1], T_list[2], T_list[3]),
+              ([-2,-3,1,3], [1,-4,-6,4], [-1,3,2,-7], [2,4,-5,-8]))
+    sh = T4.shape
+    S = np.reshape(T4, (sh[0]*sh[1], sh[2]*sh[3], sh[4]*sh[5], sh[6]*sh[7]))
+    return S
+
+
+def contract2x2x2(A_list):
+    """ Takes an iterable of rank 6 tensors and contracts a cube made
+    of them to a single rank 6 tensor. If only a single tensor is given
+    8 copies of the same tensor are used.
+    """
+    if isinstance(A_list, (np.ndarray, TensorCommon)):
+        A = A_list
+        A_list = [A]*8
+    else:
+        A_list = list(A_list)
+    Acube = ncon((A_list[0], A_list[1], A_list[2], A_list[3], A_list[4],
+                  A_list[5], A_list[6], A_list[7]),
+                 ([-2,-5,7,3,-18,1], [7,-8,-10,9,-19,6],
+                  [12,9,-9,-14,20,10], [-1,3,12,-13,-17,4],
+                  [-3,-6,5,2,1,-22], [5,-7,-11,8,6,-23],
+                  [11,8,-12,-15,10,-24], [-4,2,11,-16,4,-21]))
+    S = Acube.join_indices((0,1,2,3), (4,5,6,7), (8,9,10,11),
+                           (12,13,14,15), (16,17,18,19), (20,21,22,23),
+                           dirs=[1,1,-1,-1,1,-1])
+    return Acube
+
+
 def generate_A(*args, pars=dict()):
     A = initialtensors.get_initial_tensor(pars)
     log_fact = 0
     if pars["initial4x4"]:
-        A = toolbox.contract2x2(A)
-        A = toolbox.contract2x2(A)
+        A = contract2x2(A)
+        A = contract2x2(A)
     elif pars["initial2x2"]:
-        A = toolbox.contract2x2(A)
+        A = contract2x2(A)
     elif pars["initial2x2x2"]:
-        A = toolbox.contract2x2x2(A)
+        A = contract2x2x2(A)
     elif pars["initial2z"]:
         orig_dirs = A.dirs
         A = ncon((A, A),
