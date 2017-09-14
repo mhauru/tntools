@@ -1,6 +1,6 @@
-# TN-tools
+# tn-tools
 
-TN-tools is an assortment of miscellaneous tools and utilities that are useful
+tn-tools is an assortment of miscellaneous tools and utilities that are useful
 when developing tensor network algorithms in Python3. It is relies on the
 `tensors` (https://github.com/mhauru/tensors) and `ncon`
 (https://github.com/mhauru/ncon) packages.
