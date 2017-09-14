@@ -10,6 +10,23 @@ from tensors import AbelianTensor
 from tensors import Tensor
 
 
+""" A module that allows doing eigenvalue and singular value
+decompositions of tensor networks, using an interface similar to ncon,
+without ever contractng the full network. Meant to be used with the 
+tensors package that implements tensors with internal abelian
+symmetries.
+
+In other words, there's a common situation where one wants to implement
+a function that maps a vector v to v contracted with some tensor
+network, with the contraction order specified for speed, and then
+perform "sparse" power-method-style decompositions on this function.
+ncon_sparseeig provides a convenient one-function-call interfact for
+doing the whole thing, for both regular and symmetric tensors.
+"""
+
+# TODO: This module could use cleaning up and documenting. If I recall
+# correctly, there's some pretty ad hoc ugliness in here.
+
 # Commonalities
 
 def get_commons(tensor_list):

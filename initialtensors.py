@@ -4,7 +4,31 @@ from ncon import ncon
 from tensors import Tensor
 from tensors import TensorZ2, TensorZ3, TensorU1
 
-""" Module for getting the initial tensors for different models. """
+""" Module for getting the initial tensors for different models.
+Uses the tensors package.
+
+The user is expected to call the function get_initial_tensor with
+a dictionary as an argument that holds the necessary parameters,
+including "model" and things like "beta" or various couplings.
+The values of model that are supported, at least to some degree, are
+ising: Classical square-lattice Ising model
+potts3: Classical square-lattice 3-state Potts model
+sixvertex The six-vertex model
+ising3d: Classical cubical lattice Ising model
+potts33d: Classical cubical lattice 3-state Potts model
+Also included in the dictionary should be a boolean for
+"symmetry_tensors", which determines whether symmetry preserving tensors
+are to be used or not.
+
+Some other functions are included, for instance for getting impurity
+tensors for topological defects of the square lattice Ising model.
+See the source code.
+"""
+
+# TODO: The 2D part is acceptable, but the 3D stuff is a big ad hoc
+# mess. Also, everything needs to be documented.
+
+# # # # # # # # # # # # # 2D models # # # # # # # # # # # # # # # # #
 
 def ising_hamiltonian(pars):
     ham = (- pars["J"]*np.array([[ 1,-1],
@@ -38,6 +62,7 @@ symmetry_bases["potts3"] = np.array([[1,       1,         1],
                                     dtype=np.complex_) / np.sqrt(3)
 del(phase)
 
+
 def get_initial_tensor(pars, **kwargs):
     if kwargs:
         pars = pars.copy()
@@ -49,20 +74,21 @@ def get_initial_tensor(pars, **kwargs):
         return get_initial_tensor_ising_3d(pars)
     elif model_name == "potts33d":
         return get_initial_tensor_potts33d(pars)
-    ham = hamiltonians[model_name](pars)
-    boltz = np.exp(-pars["beta"]*ham)
-    T_0 = np.einsum('ab,bc,cd,da->abcd', boltz, boltz, boltz, boltz)
-    u = symmetry_bases[model_name]
-    u_dg = u.T.conjugate()
-    T_0 = ncon((T_0, u, u, u_dg, u_dg),
-               ([1,2,3,4], [-1,1], [-2,2], [3,-3], [4,-4]))
-    if pars["symmetry_tensors"]:
-        cls, dim, qim = symmetry_classes_dims_qims[model_name]
-        T_0 = cls.from_ndarray(T_0, shape=[dim]*4, qhape=[qim]*4,
-                               dirs=[1,1,-1,-1])
     else:
-        T_0 = Tensor.from_ndarray(T_0)
-    return T_0
+        ham = hamiltonians[model_name](pars)
+        boltz = np.exp(-pars["beta"]*ham)
+        A_0 = np.einsum('ab,bc,cd,da->abcd', boltz, boltz, boltz, boltz)
+        u = symmetry_bases[model_name]
+        u_dg = u.T.conjugate()
+        A_0 = ncon((A_0, u, u, u_dg, u_dg),
+                   ([1,2,3,4], [-1,1], [-2,2], [3,-3], [4,-4]))
+        if pars["symmetry_tensors"]:
+            cls, dim, qim = symmetry_classes_dims_qims[model_name]
+            A_0 = cls.from_ndarray(A_0, shape=[dim]*4, qhape=[qim]*4,
+                                   dirs=[1,1,-1,-1])
+        else:
+            A_0 = Tensor.from_ndarray(A_0)
+    return A_0
 
 
 def get_initial_sixvertex_tensor(pars):
@@ -77,26 +103,29 @@ def get_initial_sixvertex_tensor(pars):
         a = rho*np.sin(lmbd - u)
         b = rho*np.sin(u)
         c = rho*np.sin(lmbd)
-    T_0 = np.zeros((2,2,2,2), dtype=pars["dtype"])
-    T_0[1,0,0,1] = a
-    T_0[0,1,1,0] = a
-    T_0[0,0,1,1] = b
-    T_0[1,1,0,0] = b
-    T_0[0,1,0,1] = c
-    T_0[1,0,1,0] = c
+    A_0 = np.zeros((2,2,2,2), dtype=pars["dtype"])
+    A_0[1,0,0,1] = a
+    A_0[0,1,1,0] = a
+    A_0[0,0,1,1] = b
+    A_0[1,1,0,0] = b
+    A_0[0,1,0,1] = c
+    A_0[1,0,1,0] = c
     if pars["symmetry_tensors"]:
         dim = [1,1]
         qim = [-1,1]
-        T_0 = TensorU1.from_ndarray(T_0, shape=[dim]*4, qhape=[qim]*4,
+        A_0 = TensorU1.from_ndarray(A_0, shape=[dim]*4, qhape=[qim]*4,
                                     dirs=[1,1,1,1])
-        T_0 = T_0.flip_dir(2)
-        T_0 = T_0.flip_dir(3)
+        A_0 = A_0.flip_dir(2)
+        A_0 = A_0.flip_dir(3)
     else:
-        T_0 = Tensor.from_ndarray(T_0)
-    return T_0
+        A_0 = Tensor.from_ndarray(A_0)
+    return A_0
 
 
 def get_KW_tensor(pars):
+    """ The Kramers-Wannier duality defect of the classical 2D
+    square lattice Ising model.
+    """
     eye = np.eye(2, dtype=np.complex_)
     ham = hamiltonians["ising"](pars)
     B = np.exp(-pars["beta"] * ham)
@@ -121,6 +150,9 @@ def get_KW_tensor(pars):
 
 
 def get_KW_unitary(pars):
+    """ The unitary that moves the Kramers-Wannier duality defect of the
+    classical 2D square lattice Ising model.
+    """
     eye = np.eye(2, dtype=np.complex_)
     CZ = Csigma_np("z")
     U = ncon((CZ,
@@ -169,56 +201,49 @@ def R(alpha, c):
     res = np.cos(alpha)*eye + 1j*np.sin(alpha)*s
     return res
 
-# # # # # # # # # # # # # 3D stuff # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # 3D models # # # # # # # # # # # # # # # # #
 # TODO: Incorporate this into the more general framework.
 # TODO: Implement this for symmetry preserving tensors.
 
 def get_initial_tensor_CDL_3d(pars):
     delta = np.eye(2, dtype = pars["dtype"])
-    T = np.einsum(('ae,fi,jm,nb,cq,rk,lu,vd,gs,to,pw,xh '
+    A = np.einsum(('ae,fi,jm,nb,cq,rk,lu,vd,gs,to,pw,xh '
                    '-> abcdefghijklmnopqrstuvwx'),
                   delta, delta, delta, delta, delta, delta,
                   delta, delta, delta, delta, delta, delta)
-    return Tensor.from_ndarray(T.reshape((16,16,16,16,16,16)))
+    return Tensor.from_ndarray(A.reshape((16,16,16,16,16,16)))
 
 
 def get_initial_tensor_CDL_3d_v2(pars):
     delta = np.eye(2, dtype = pars["dtype"])
-    T = ncon((delta,)*12,
+    A = ncon((delta,)*12,
              ([-11,-21], [-12,-41], [-13,-51], [-14,-61],
               [-31,-22], [-32,-42], [-33,-52], [-34,-62],
               [-23,-63], [-64,-43], [-44,-53], [-54,-24]))
-    return Tensor.from_ndarray(T.reshape((16,16,16,16,16,16)))
+    return Tensor.from_ndarray(A.reshape((16,16,16,16,16,16)))
 
 
 def get_initial_tensor_CQL_3d(pars):
     delta = np.array([[[1,0],[0,0]],[[0,0],[0,1]]])
-    T = np.einsum(('aeu,fiv,gjq,hbr,mcw,nxk,ols,ptd '
+    A = np.einsum(('aeu,fiv,gjq,hbr,mcw,nxk,ols,ptd '
                    '-> abcdefghijklmnopqrstuvwx'),
                   delta, delta, delta, delta, delta, delta, delta,
                   delta)
-    return Tensor.from_ndarray(T.reshape((16,16,16,16,16,16)))
+    return Tensor.from_ndarray(A.reshape((16,16,16,16,16,16)))
 
-# DEBUG
-#global_random_T_0 = (TensorZ2.random(shape=[[1,1]]*6, dirs=[1,1,-1,-1,1,-1])
-#                     + 1j*TensorZ2.random(shape=[[1,1]]*6, dirs=[1,1,-1,-1,1,-1]))
-# END DEBUG
 
 def get_initial_tensor_ising_3d(pars):
     beta = pars["beta"]
     ham = ising3d_ham(beta)
-    T_0 = np.einsum('ai,aj,ak,al,am,an -> ijklmn',
+    A_0 = np.einsum('ai,aj,ak,al,am,an -> ijklmn',
                     ham, ham, ham, ham, ham, ham)
     if pars["symmetry_tensors"]:
         cls, dim, qim = TensorZ2, [1,1], [0,1]
-        T_0 = cls.from_ndarray(T_0, shape=[dim]*6, qhape=[qim]*6,
+        A_0 = cls.from_ndarray(A_0, shape=[dim]*6, qhape=[qim]*6,
                                dirs=[1,1,-1,-1,1,-1])
     else:
-        T_0 = Tensor.from_ndarray(T_0)
-    # DEBUG
-    #T_0 = global_random_T_0
-    # END DEBUG
-    return T_0
+        A_0 = Tensor.from_ndarray(A_0)
+    return A_0
 
 
 def get_initial_tensor_potts33d(pars):
@@ -254,7 +279,7 @@ def potts_Q_inv(beta, q):
     return Q
 
 
-# # # # # # # # # # # # # # # # Impurities # # # # # # # # # # # # # # # #
+# # # 3D impurities # # #
 
 
 impurity_dict = dict()
@@ -326,8 +351,7 @@ def ising3d_U(beta):
     # Factor of -1 because U = - \partial log Z / \partial beta, and a
     # factor of 3 because there are two bonds per lattice site, and we
     # normalize by number of sites.
-    # DEBUG 2x2x4 check comment in
-    #matrix *= -3
+    matrix *= -3
     return matrix
 
 impurity_dict["ising3d"]["U"] = lambda pars: ising3d_U(pars["beta"])

@@ -1,6 +1,11 @@
 import argparse
 import yaml
 
+""" A module for parsing arguments from config files and the command
+line in YAML. The command line arguments are simply appended at the end
+of what is read from a config file, which makes them take priority.
+"""
+
 def parse_argv(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument(

@@ -4,6 +4,21 @@ import os
 import logging
 import yaml
 
+""" A module for storing data on the disk. The idea is that every piece
+of data is uniquely identified by a name for what it is, and a dictionary
+of properties it has. Given data, a name and dictionary, Pact pickles
+the data and stores in a given folder, and given a just a name and
+dictionary Pact can fetch this data from the same folder. Each stored
+file is also accompanied by a YAML file, that gives the dictionary keys
+in a human-readable format.
+
+Pact should also keep an index file that keeps tracks of all the data
+that is currently stored, but implementing this is only half-done.
+
+The datadispenser.py module makes extensive use of Pact as a storage
+backend.
+"""
+
 # TODO Is the whole class structure necessary?
 class Pact:
     def __init__(self, folder):

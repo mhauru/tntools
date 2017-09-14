@@ -3,8 +3,19 @@ import itertools as it
 import scipy.integrate as integrate
 
 """ Module that gets exact data such as free energies and scaling
-dimensions for known models.
+dimensions for known models. Most functions expect as arguments a
+dictionary called pars, where one of the keys would be called "model"
+and the value for that would be the name of the model. Other necessary
+things may be expected to be included in the same dictionary, such
+as a (key, value) pair for the inverse temperature.
+
+Supported at the moment are only 2D classical square-lattice models, namely
+the Ising, 3-state Potts, and six-vertex models. The model names used
+for these are "ising", "potts3" and "sixvertex".
 """
+
+
+##################### Critical points #####################
 
 def get_critical_beta(pars, **kwargs):
     pars = update_pars(pars, **kwargs)
@@ -20,6 +31,7 @@ def get_critical_beta(pars, **kwargs):
         beta_c = None
     return beta_c
 
+##################### CFT data #####################
 
 def get_central_charge(pars, **kwargs):
     # TODO Should this check that we are at criticality?
@@ -190,6 +202,7 @@ def get_conformal_spins(m, pars, alpha=0, **kwargs):
     scaldims, spins, degs = get_primary_data(m, pars, alpha=alpha, **kwargs)
     return spins
 
+##################### Free energy #####################
 
 def get_free_energy(pars, **kwargs):
     pars = update_pars(pars, **kwargs)
@@ -203,13 +216,6 @@ def get_free_energy(pars, **kwargs):
                               c=pars["sixvertex_c"])
     return f
 
-
-def update_pars(pars, **kwargs):
-    pars = pars.copy()
-    pars.update(kwargs)
-    return pars
-
-##################### Free energy functions #####################
 
 def ising_exact_f(beta, J, H):
     if H != 0:
@@ -233,7 +239,8 @@ def potts3_exact_f(beta, J):
         def integrand(x):
             res = np.tanh(mu*x)*np.sinh((np.pi - mu)*x) / (x*np.sinh(np.pi*x))
             return res
-        f = - 0.5 * np.log(q) - integrate.quad(integrand, -100, 100, points=[0])[0]
+        f = (-0.5*np.log(q)
+             -integrate.quad(integrand, -100, 100, points=[0])[0])
         f = f / beta
     else:
         raise NotImplementedError()
@@ -256,4 +263,11 @@ def sixvertex_exact_f(a, b, c):
     else:
         raise NotImplementedError()
     return f
+
+##################### Utility funtions #####################
+
+def update_pars(pars, **kwargs):
+    pars = pars.copy()
+    pars.update(kwargs)
+    return pars
 
