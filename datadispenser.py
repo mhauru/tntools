@@ -3,8 +3,8 @@ import logging
 import configparser
 import numpy as np
 import os
-import multilineformatter
-from pact import Pact
+from . import multilineformatter
+from .pact import Pact
 
 np.set_printoptions(precision=7)
 

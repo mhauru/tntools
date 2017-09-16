@@ -1,5 +1,5 @@
 import numpy as np
-import initialtensors
+from . import initialtensors
 from tensors import TensorCommon
 from ncon import ncon
 
