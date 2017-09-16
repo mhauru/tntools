@@ -87,7 +87,7 @@ pars that has been updated with default values, is to be returned.
 **kwargs can be used to provide values that override those in pars.
 
 A user may also want to call the function
-update_default_pars(dataname, pars)
+update_default_pars(dataname, pars, **kwargs)
 which updates pars in-place to include the default values for all
 the parameters for this piece of data that were not provided.
 
@@ -168,14 +168,15 @@ def copy_update(pars, **kwargs):
     return pars
 
 
-def update_default_pars(dataname, pars):
+def update_default_pars(dataname, pars, **kwargs):
     """ Update pars, in-place, with the default values for this piece of
     data.
     """
-    setupmod = get_setupmod(dataname, pars)
+    pars_copy = copy_update(pars, **kwargs)
+    setupmod = get_setupmod(dataname, pars_copy)
 
     # Get the pars for the prereqs and update them in.
-    prereq_pairs = setupmod.prereq_pairs(dataname, pars)
+    prereq_pairs = setupmod.prereq_pairs(dataname, pars_copy)
     prereq_pars_all = dict()
     for prereq_name, prereq_pars in prereq_pairs:
         update_default_pars(prereq_name, prereq_pars)
