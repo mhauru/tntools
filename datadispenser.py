@@ -103,26 +103,21 @@ modules is hardcoded.
 # and gives out the name of the setup module appropriate for this
 # dataname and pars. Note that often the return value doesn't even
 # depend on pars. If the dataname is not found in this dictionary,
-# pars["algorithm"] + "_setup" is used.
+# or the function returns None, then a default guess is made based on
+# pars["algorithm"].
 setupmodule_dict = {
-    "A": lambda pars: (pars["algorithm"] + "_setup"
-                       if pars["iter_count"] > 0
+    "A": lambda pars: (None if pars["iter_count"] > 0
                        else "tntools.initialtensors_setup"),
-    "As": lambda pars: (pars["algorithm"] + "_setup"
-                        if pars["iter_count"] > 0
+    "As": lambda pars: (None if pars["iter_count"] > 0
                         else "tntools.initialtensors_setup"),
-    "A_impure": lambda pars: (pars["algorithm"] + "_setup"
-                              if pars["iter_count"] > 0
+    "A_impure": lambda pars: (None if pars["iter_count"] > 0
                               else "tntools.initialtensors_setup"),
-    "As_impure": lambda pars: (pars["algorithm"] + "_setup"
-                               if pars["iter_count"] > 0
+    "As_impure": lambda pars: (None if pars["iter_count"] > 0
                                else "tntools.initialtensors_setup"),
-    "As_impure111": lambda pars: (pars["algorithm"] + "_setup"
-                                   if pars["iter_count"] > 0
-                                   else "tntools.initialtensors_setup"),
-    "As_impure333": lambda pars: (pars["algorithm"] + "_setup"
-                                   if pars["iter_count"] > 0
-                                   else "tntools.initialtensors_setup"),
+    "As_impure111": lambda pars: (None if pars["iter_count"] > 0
+                                  else "tntools.initialtensors_setup"),
+    "As_impure333": lambda pars: (None if pars["iter_count"] > 0
+                                  else "tntools.initialtensors_setup"),
     "T3D_spectrum": lambda pars: "T3D_spectrum" + "_setup",
     "T2D_spectrum": lambda pars: "T2D_spectrum" + "_setup",
 }
@@ -248,10 +243,13 @@ def generate_data(dataname, pars, db=None):
 
 
 def get_setupmod_name(dataname, pars):
-    try:
-        modulename = setupmodule_dict[dataname](pars)
-    except KeyError:
-        modulename = pars["algorithm"] + "_setup"
+    modulename = (None if dataname not in setupmodule_dict
+                  else setupmodule_dict[dataname](pars))
+    if modulename is None:
+        algoname = pars["algorithm"]
+        modulename =  "{}_setup".format(algoname, algoname)
+        if importlib.util.find_spec(modulename) is None:
+            modulename = "{}.{}".format(algoname, modulename)
     return modulename
 
 
