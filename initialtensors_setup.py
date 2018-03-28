@@ -42,6 +42,10 @@ parinfo = {
         "default": False,
         "idfunc":  lambda dataname, pars: True
     },
+    "verbosity": {
+        "default": 1,
+        "idfunc":  lambda dataname, pars: False
+    },
 
     # Model dependent parameters.
     # Ising and 3-state Potts
@@ -75,6 +79,40 @@ parinfo = {
         "idfunc":  lambda dataname, pars: pars["model"] == "sixvertex"
     },
 
+    # Qising complexions
+    "complexion_step_direction": {
+        "default": 1j,
+        "idfunc": lambda dataname, pars: pars["model"] == "complexion_qising"
+    },
+    "complexion_timestep": {
+        "default": 1,
+        "idfunc": lambda dataname, pars: pars["model"] == "complexion_qising"
+    },
+    "complexion_spacestep": {
+        "default": 1,
+        "idfunc": lambda dataname, pars: pars["model"] == "complexion_qising"
+    },
+    "complexion_padding": {
+        "default": 3,
+        "idfunc": lambda dataname, pars: pars["model"] == "complexion_qising"
+    },
+    "h_trans": {
+        "default": 1.0,
+        "idfunc": lambda dataname, pars: pars["model"] == "complexion_qising"
+    },
+    "h_long": {
+        "default": 0.0,
+        "idfunc": lambda dataname, pars: pars["model"] == "complexion_qising"
+    },
+    "complexion_eps": {
+        "default": 1e-5,
+        "idfunc": lambda dataname, pars: pars["model"] == "complexion_qising"
+    },
+    "complexion_chis": {
+        "default": None,
+        "idfunc": lambda dataname, pars: pars["model"] == "complexion_qising"
+    },
+
     # Impurity parameters
     "impurity": {
         "default": None,
@@ -105,7 +143,6 @@ def generate(dataname, *args, pars=dict(), filelogger=None):
     return res
 
 
-
 def contract2x2(A_list):
     """ Takes an iterable of rank 4 tensors and contracts a square made
     of them to a single rank 4 tensor. If only a single tensor is given
@@ -120,6 +157,7 @@ def contract2x2(A_list):
               ([-2,-3,1,3], [1,-4,-6,4], [-1,3,2,-7], [2,4,-5,-8]))
     A4 = A4.join_indices((0,1), (2,3), (4,5), (6,7), dirs=[1,1,-1,-1])
     return A4
+
 
 def contract2x2_ndarray(T_list, vert_flip=False):
     if vert_flip:

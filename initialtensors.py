@@ -1,5 +1,8 @@
 import numpy as np
 import itertools as itt
+import scipy.linalg as spla
+import scipy.sparse.linalg as spsla
+import logging
 from ncon import ncon
 from tensors import Tensor
 from tensors import TensorZ2, TensorZ3, TensorU1
@@ -74,6 +77,8 @@ def get_initial_tensor(pars, **kwargs):
         return get_initial_tensor_ising_3d(pars)
     elif model_name == "potts33d":
         return get_initial_tensor_potts33d(pars)
+    elif model_name == "complexion_qising":
+        return get_initial_tensor_complexion_qising(pars)
     else:
         ham = hamiltonians[model_name](pars)
         boltz = np.exp(-pars["beta"]*ham)
@@ -200,6 +205,118 @@ def R(alpha, c):
     eye = np.eye(2, dtype=np.complex_)
     res = np.cos(alpha)*eye + 1j*np.sin(alpha)*s
     return res
+
+
+# # # # # # # # # # # # # Quantum complexions # # # # # # # # # # # # # # # #
+
+
+def qising_ham(h_trans=1, h_long=0):
+    eye2 = np.eye(2)
+    ham = (- ncon((sigma('x'), sigma('x')), ([-1,-11], [-2,-12]))
+           - h_trans/2*ncon((eye2, sigma('z')), ([-1,-11], [-2,-12]))
+           - h_trans/2*ncon((sigma('z'), eye2), ([-1,-11], [-2,-12]))
+           - h_long/2*ncon((sigma('x'), eye2), ([-1,-11], [-2,-12]))
+           - h_long/2*ncon((eye2, sigma('x')), ([-1,-11], [-2,-12]))
+           + 4/np.pi*ncon((eye2, eye2), ([-1,-11], [-2,-12]))
+           )/2
+    return ham
+
+
+def build_qham_open(ham, N):
+    # TODO At the moment this is actually specific to Ising.
+    T = type(ham)
+    ham = ham.to_ndarray()
+    ham = np.reshape(ham, (4,4))
+    eye2 = np.eye(2)
+    ids = 1.
+    result = ham
+    for i in range(3, N+1):
+        ids = np.kron(ids, eye2)
+        result = np.kron(result, eye2)
+        result += np.kron(ids, ham)
+    result = np.reshape(result, (2,)*(2*N))
+    result = T.from_ndarray(result, shape=[dim]*(2*N), qhape=[qim]*(2*N),
+                            dirs=([1]*N + [-1]*N))
+    return result
+
+
+# TODO Should this really be in initialtensors.py?
+def exp_op(A):
+    T = type(A)
+    shape = A.shape
+    qhape = A.qhape
+    dirs = A.dirs
+    A = A.to_ndarray()
+    N = int(len(A.shape)/2)
+    d = A.shape[0]
+    A = np.reshape(A, (d**N, d**N))
+    EA = spla.expm(A)
+    EA = np.reshape(EA, (d,)*(2*N))
+    EA = T.from_ndarray(EA, shape=shape, qhape=qhape, dirs=dirs)
+    return EA
+
+
+def get_initial_tensor_complexion_qising(pars):
+    if pars["symmetry_tensors"]:
+        tensor_cls = TensorZ2
+    else:
+        tensor_cls = Tensor
+
+    timestep = pars["complexion_timestep"]
+    spacestep = pars["complexion_spacestep"]
+    padding = pars["complexion_padding"]
+    spacestep_ceil = int(np.ceil(spacestep))
+    halfN = spacestep_ceil + padding
+    N = halfN*2
+    M = N + spacestep_ceil
+    unit = pars["complexion_step_direction"]
+
+    ham = qising_ham(pars["h_trans"], pars["h_long"])
+    ham = tensor_cls.from_ndarray(ham, shape=[dim]*4, qhape=[qim]*4,
+                                  dirs=[1,1,-1,-1])
+    HN = build_qham_open(ham, N)
+
+    UN = exp_op(unit*timestep*HN)
+
+    U, S, V = UN.svd(
+        list(range(0,halfN)) + list(range(N,3*halfN)),
+        list(range(halfN,N)) + list(range(3*halfN,2*N)),
+        eps=pars["complexion_eps"], chis=pars["complexion_chis"]
+    )
+
+    HM = build_qham_open(ham, M)
+    UM = exp_op(unit*timestep*HM)
+
+    Uindices = list(range(1,N+1)) + [-1]
+    UMindices = (
+        list(range(1,halfN+1))
+        + [-i for i in range(2,2+spacestep_ceil)] + list(range(N+1,3*halfN+1))
+        + list(range(halfN+1,N+1))
+        + [-i for i in range(3+spacestep_ceil,3+spacestep_ceil*2)]
+        + list(range(3*halfN+1,2*N+1))
+    )
+    Vindices = [-2-spacestep_ceil] + list(range(N+1,2*N+1))
+    complexion = ncon((U.conjugate(), UM, V.conjugate()),
+                      (Uindices, UMindices, Vindices))
+    complexion = complexion.join_indices(
+        list(range(1,1+spacestep_ceil)),
+        list(range(2+spacestep_ceil,2+2*spacestep_ceil)),
+        dirs=[1,-1]
+    )
+    try:
+        S_isqrt = S**(-1/2)
+    except ZeroDivisionError:
+        S_isqrt = S.copy()
+        for k, v in S_isqrt.sects.items():
+            S_isqrt[k] = v**(-1/2)
+    complexion = complexion.multiply_diag(S_isqrt, 0, direction="left")
+    complexion = complexion.multiply_diag(S_isqrt, 2, direction="right")
+    shp = type(complexion).flatten_shape(complexion.shape)
+    if pars["verbosity"] > 0:
+        logging.info("Built complexion with shape {}".format(shp))
+    return complexion
+
+
 
 # # # # # # # # # # # # # 3D models # # # # # # # # # # # # # # # # #
 # TODO: Incorporate this into the more general framework.
