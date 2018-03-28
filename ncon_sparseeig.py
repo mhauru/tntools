@@ -253,6 +253,8 @@ def common_preprocess(tensor_list, index_list, matvec_order, rmatvec_order,
     left_perm = list(np.argsort(left_inds))
     right_perm = list(np.argsort(right_inds))
 
+    tensor_list_conj = [t.conjugate() for t in tensor_list]
+
     try:
         neg_right_dirs = list(map(opr.neg, right_dirs))
     except TypeError:
@@ -279,9 +281,14 @@ def common_preprocess(tensor_list, index_list, matvec_order, rmatvec_order,
 
     def rmatvec(v, charge=0):
         v = np.reshape(v, left_flatdims)
+        # TODO Taking the conjugate of v twice is the easiest way to get
+        # the qhape to be right. It's not the fastest though, so this
+        # should be fixed later.
+        v = np.conjugate(v)
         v = commontype.from_ndarray(v, shape=left_dims, qhape=left_qims,
                                     charge=charge, dirs=neg_left_dirs)
-        ncon_list = tensor_list + [v]
+        v = v.conjugate()
+        ncon_list = tensor_list_conj + [v]
         Av = ncon(ncon_list, rmatvec_index_list, order=rmatvec_order)
         Av = Av.to_ndarray()
         Av = np.transpose(Av, right_perm)
@@ -573,13 +580,20 @@ def get_eig(matvec, hermitian, n_eigs, return_eigenvectors, right_dims,
             right_flatdim, commontype, commondtype, **kwargs):
     lo = spsla.LinearOperator((right_flatdim, right_flatdim),
                               matvec, dtype=commondtype)
+    # DEBUG this shouldn't be necessary, but see
+    # https://github.com/opencollab/arpack-ng/issues/79
+    #v0 = np.random.rand(right_flatdim, right_flatdim)
+    #v0 = lo.matvec(v0)
+    # END DEBUG
     if hermitian:
         res = spsla.eigsh(lo, k=n_eigs,
                           return_eigenvectors=return_eigenvectors,
+                          #v0=v0,  # DEBUG
                           **kwargs)
     else:
         res = spsla.eigs(lo, k=n_eigs,
                          return_eigenvectors=return_eigenvectors,
+                         #v0=v0,  # DEBUG
                          **kwargs)
     if return_eigenvectors:
         S, U = res
