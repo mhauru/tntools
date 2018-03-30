@@ -106,6 +106,7 @@ modules is hardcoded.
 # or the function returns None, then a default guess is made based on
 # pars["algorithm"].
 setupmodule_dict = {
+    "ham": lambda pars: "tntools.initialtensors_setup",
     "A": lambda pars: (None if pars["iter_count"] > 0
                        else "tntools.initialtensors_setup"),
     "As": lambda pars: (None if pars["iter_count"] > 0
@@ -170,6 +171,11 @@ def update_default_pars(dataname, pars, **kwargs):
     pars_copy = copy_update(pars, **kwargs)
     setupmod = get_setupmod(dataname, pars_copy)
 
+    # Get the default for this setupmod, and update those in, since we
+    # may need those to find the prereqs.
+    parinfo = setupmod.parinfo
+    apply_parinfo_defaults(pars_copy, parinfo)
+
     # Get the pars for the prereqs and update them in.
     prereq_pairs = setupmod.prereq_pairs(dataname, pars_copy)
     prereq_pars_all = dict()
@@ -181,7 +187,8 @@ def update_default_pars(dataname, pars, **kwargs):
         if k not in pars:
             pars[k] = v
 
-    # Get the default for this setupmod, and update those in.
+    # Update the defaults for this module once more, now into pars, to
+    # make sure that they override those coming from prerequisites.
     parinfo = setupmod.parinfo
     apply_parinfo_defaults(pars, parinfo)
     return pars

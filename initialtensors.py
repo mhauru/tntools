@@ -78,7 +78,9 @@ def get_initial_tensor(pars, **kwargs):
     elif model_name == "potts33d":
         return get_initial_tensor_potts33d(pars)
     elif model_name == "complexion_qising":
-        return get_initial_tensor_complexion_qising(pars)
+        ham = get_ham(pars, model="qising")
+        complexion = build_complexion(ham, pars)
+        return complexion
     else:
         ham = hamiltonians[model_name](pars)
         boltz = np.exp(-pars["beta"]*ham)
@@ -207,10 +209,25 @@ def R(alpha, c):
     return res
 
 
-# # # # # # # # # # # # # Quantum complexions # # # # # # # # # # # # # # # #
+# # # # # # # # Quantum complexions and hamiltonians # # # # # # # # # #
 
 
-def qising_ham(h_trans=1, h_long=0):
+def get_ham(pars, **kwargs):
+    if kwargs:
+        pars = pars.copy()
+        pars.update(kwargs)
+    model_name = pars["model"].strip().lower()
+    if model_name == "qising":
+        ham = qising_ham(pars)
+    else:
+        msg = ("Don't know how to generate ham for {}.".format(model_name))
+        raise ValueError(msg)
+    return ham
+
+
+def qising_ham(pars):
+    h_trans = pars["h_trans"]
+    h_long = pars["h_long"]
     eye2 = np.eye(2)
     ham = (- ncon((sigma('x'), sigma('x')), ([-1,-11], [-2,-12]))
            - h_trans/2*ncon((eye2, sigma('z')), ([-1,-11], [-2,-12]))
@@ -219,24 +236,36 @@ def qising_ham(h_trans=1, h_long=0):
            - h_long/2*ncon((eye2, sigma('x')), ([-1,-11], [-2,-12]))
            + 4/np.pi*ncon((eye2, eye2), ([-1,-11], [-2,-12]))
            )/2
+    dim, qim = [1,1], [0,1]
+    if pars["symmetry_tensors"] and pars["model"] == "qising":
+        tensor_cls = TensorZ2
+    else:
+        tensor_cls = Tensor
+    ham = tensor_cls.from_ndarray(ham, shape=[dim]*4, qhape=[qim]*4,
+                                  dirs=[1,1,-1,-1])
     return ham
 
 
 def build_qham_open(ham, N):
-    # TODO At the moment this is actually specific to Ising.
+    # TODO This is specific to two-site hams.
     T = type(ham)
+    dim = ham.shape[0]
+    qim = ham.qhape[0] if ham.qhape is not None else None
+    dim_flat = type(ham).flatten_dim(dim)
     ham = ham.to_ndarray()
-    ham = np.reshape(ham, (4,4))
-    eye2 = np.eye(2)
+    ham = np.reshape(ham, (dim_flat**2, dim_flat**2))
+    eye = np.eye(dim_flat)
     ids = 1.
     result = ham
     for i in range(3, N+1):
-        ids = np.kron(ids, eye2)
-        result = np.kron(result, eye2)
+        ids = np.kron(ids, eye)
+        result = np.kron(result, eye)
         result += np.kron(ids, ham)
-    result = np.reshape(result, (2,)*(2*N))
-    result = T.from_ndarray(result, shape=[dim]*(2*N), qhape=[qim]*(2*N),
-                            dirs=([1]*N + [-1]*N))
+    result = np.reshape(result, (dim_flat,)*(2*N))
+    shape = [dim]*(2*N)
+    qhape = None if qim is None else [qim]*(2*N)
+    dirs = [1]*N + [-1]*N
+    result = T.from_ndarray(result, shape=shape, qhape=qhape, dirs=dirs)
     return result
 
 
@@ -256,12 +285,10 @@ def exp_op(A):
     return EA
 
 
-def get_initial_tensor_complexion_qising(pars):
-    if pars["symmetry_tensors"]:
-        tensor_cls = TensorZ2
-    else:
-        tensor_cls = Tensor
-
+def build_complexion(ham, pars, **kwargs):
+    if kwargs:
+        pars = pars.copy()
+        pars.update(kwargs)
     timestep = pars["complexion_timestep"]
     spacestep = pars["complexion_spacestep"]
     padding = pars["complexion_padding"]
@@ -271,9 +298,6 @@ def get_initial_tensor_complexion_qising(pars):
     M = N + spacestep_ceil
     unit = pars["complexion_step_direction"]
 
-    ham = qising_ham(pars["h_trans"], pars["h_long"])
-    ham = tensor_cls.from_ndarray(ham, shape=[dim]*4, qhape=[qim]*4,
-                                  dirs=[1,1,-1,-1])
     HN = build_qham_open(ham, N)
 
     UN = exp_op(unit*timestep*HN)

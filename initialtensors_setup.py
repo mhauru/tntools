@@ -122,7 +122,7 @@ parinfo = {
 
 
 def prereq_pairs(dataname, pars):
-    if dataname in {"A", "As", "As_impure", "As_impure", "A_impure"}:
+    if dataname in {"A", "As", "As_impure", "As_impure", "A_impure", "ham"}:
         res = []
     else:
         raise ValueError("Unknown dataname: {}".format(dataname))
@@ -138,6 +138,8 @@ def generate(dataname, *args, pars=dict(), filelogger=None):
         res = generate_A_impure(*args, pars=pars)
     elif dataname == "As_impure":
         res = generate_As_impure(*args, pars=pars)
+    elif dataname == "ham":
+        res = generate_ham(*args, pars=pars)
     else:
         raise ValueError("Unknown dataname: {}".format(dataname))
     return res
@@ -245,4 +247,9 @@ def generate_As_impure(*args, pars=dict()):
     A, log_fact_pure = generate_A(*args, pars=pars)
     res = ((A, A_impure, A, A, A, A, A, A), log_fact_impure + log_fact_pure)
     return res
+
+
+def generate_ham(*args, pars=dict()):
+    ham = initialtensors.get_ham(pars)
+    return ham
 
