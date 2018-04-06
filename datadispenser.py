@@ -255,8 +255,12 @@ def get_setupmod_name(dataname, pars):
     if modulename is None:
         algoname = pars["algorithm"]
         modulename =  "{}_setup".format(algoname, algoname)
-        if importlib.util.find_spec(modulename) is None:
-            modulename = "{}.{}".format(algoname, modulename)
+        try:
+            if importlib.util.find_spec(modulename) is None:
+                modulename = "{}.{}".format(algoname, modulename)
+        except AttributeError:
+            if importlib.find_loader(modulename) is None:
+                modulename = "{}.{}".format(algoname, modulename)
     return modulename
 
 
