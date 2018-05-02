@@ -82,35 +82,45 @@ parinfo = {
     # Qising complexions
     "complexion_step_direction": {
         "default": 1j,
-        "idfunc": lambda dataname, pars: pars["model"] == "complexion_qising"
+        "idfunc": lambda dataname, pars: "complexion" in pars["model"]
     },
     "complexion_timestep": {
         "default": 1,
-        "idfunc": lambda dataname, pars: pars["model"] == "complexion_qising"
+        "idfunc": lambda dataname, pars: "complexion" in pars["model"]
     },
     "complexion_spacestep": {
         "default": 1,
-        "idfunc": lambda dataname, pars: pars["model"] == "complexion_qising"
+        "idfunc": lambda dataname, pars: "complexion" in pars["model"]
     },
     "complexion_padding": {
         "default": 3,
-        "idfunc": lambda dataname, pars: pars["model"] == "complexion_qising"
-    },
-    "h_trans": {
-        "default": 1.0,
-        "idfunc": lambda dataname, pars: pars["model"] == "complexion_qising"
-    },
-    "h_long": {
-        "default": 0.0,
-        "idfunc": lambda dataname, pars: pars["model"] == "complexion_qising"
+        "idfunc": lambda dataname, pars: "complexion" in pars["model"]
     },
     "complexion_eps": {
         "default": 1e-5,
-        "idfunc": lambda dataname, pars: pars["model"] == "complexion_qising"
+        "idfunc": lambda dataname, pars: "complexion" in pars["model"]
     },
     "complexion_chis": {
         "default": None,
-        "idfunc": lambda dataname, pars: pars["model"] == "complexion_qising"
+        "idfunc": lambda dataname, pars: "complexion" in pars["model"]
+    },
+    "h_trans": {
+        "default": 1.0,
+        "idfunc": lambda dataname, pars: (
+            pars["model"] in {"complexion_qising", "complexion_qising_tricrit"}
+        )
+    },
+    "h_long": {
+        "default": 0.0,
+        "idfunc": lambda dataname, pars: (
+            pars["model"] in {"complexion_qising", "complexion_qising_tricrit"}
+        )
+    },
+    "tricrit_perturbation_factor": {
+        "default": 0.1,
+        "idfunc": lambda dataname, pars: (
+            pars["model"] in {"complexion_qising_tricrit"}
+        )
     },
 
     # Impurity parameters

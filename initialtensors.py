@@ -81,6 +81,10 @@ def get_initial_tensor(pars, **kwargs):
         ham = get_ham(pars, model="qising")
         complexion = build_complexion(ham, pars)
         return complexion
+    elif model_name == "complexion_qising_tricrit":
+        ham = get_ham(pars, model="qising_tricrit")
+        complexion = build_complexion(ham, pars)
+        return complexion
     else:
         ham = hamiltonians[model_name](pars)
         boltz = np.exp(-pars["beta"]*ham)
@@ -217,8 +221,15 @@ def get_ham(pars, **kwargs):
         pars = pars.copy()
         pars.update(kwargs)
     model_name = pars["model"].strip().lower()
-    if model_name == "qising":
+    if model_name in {"qising", "complexion_qising"}:
         ham = qising_ham(pars)
+    elif model_name in {"qising_tricrit", "complexion_qising_tricrit"}:
+        ham_ising = qising_ham(pars)
+        ham_pert = tricrit_perturbation_ham(pars)
+        eye = type(ham_ising).eye(2, qim=[0,1])
+        ham = (ncon((ham_ising, eye), ([-1,-2,-11,-12], [-3,-13]))
+               + ncon((eye, ham_ising), ([-1,-11], [-2,-3,-12,-13]))
+               + pars["tricrit_perturbation_factor"]*ham_pert)
     else:
         msg = ("Don't know how to generate ham for {}.".format(model_name))
         raise ValueError(msg)
@@ -246,26 +257,39 @@ def qising_ham(pars):
     return ham
 
 
+def tricrit_perturbation_ham(pars):
+    ham = (ncon((sigma('z'), sigma('x'), sigma('x')),
+                ([-1,-11], [-2,-12], [-3,-13]))
+           + ncon((sigma('x'), sigma('x'), sigma('z')),
+                  ([-1,-11], [-2,-12], [-3,-13])))
+    dim, qim = [1,1], [0,1]
+    if pars["symmetry_tensors"] and pars["model"] == "qising":
+        tensor_cls = TensorZ2
+    else:
+        tensor_cls = Tensor
+    ham = tensor_cls.from_ndarray(ham, shape=[dim]*6, qhape=[qim]*6,
+                                  dirs=[1,1,1,-1,-1,-1])
+    return ham
+
+
 def build_qham_open(ham, N):
-    # TODO This is specific to two-site hams.
     T = type(ham)
     dim = ham.shape[0]
     qim = ham.qhape[0] if ham.qhape is not None else None
-    dim_flat = type(ham).flatten_dim(dim)
     ham = ham.to_ndarray()
-    ham = np.reshape(ham, (dim_flat**2, dim_flat**2))
-    eye = np.eye(dim_flat)
+    k = len(ham.shape)//2
+    d = ham.shape[0]
+    ham = np.reshape(ham, (d**k, d**k))
+    eye = np.eye(d)
     ids = 1.
     result = ham
-    for i in range(3, N+1):
+    for i in range(k+1, N+1):
         ids = np.kron(ids, eye)
         result = np.kron(result, eye)
         result += np.kron(ids, ham)
-    result = np.reshape(result, (dim_flat,)*(2*N))
-    shape = [dim]*(2*N)
-    qhape = None if qim is None else [qim]*(2*N)
-    dirs = [1]*N + [-1]*N
-    result = T.from_ndarray(result, shape=shape, qhape=qhape, dirs=dirs)
+    result = np.reshape(result, (d,)*(2*N))
+    result = T.from_ndarray(result, shape=[dim]*(2*N), qhape=[qim]*(2*N),
+                            dirs=([1]*N + [-1]*N))
     return result
 
 
@@ -292,20 +316,21 @@ def build_complexion(ham, pars, **kwargs):
     timestep = pars["complexion_timestep"]
     spacestep = pars["complexion_spacestep"]
     padding = pars["complexion_padding"]
-    spacestep_ceil = int(np.ceil(spacestep))
-    halfN = spacestep_ceil + padding
+    spacestep = int(np.ceil(spacestep))
+    halfN = spacestep + padding
     N = halfN*2
-    M = N + spacestep_ceil
+    M = N + spacestep
     unit = pars["complexion_step_direction"]
 
     HN = build_qham_open(ham, N)
 
     UN = exp_op(unit*timestep*HN)
 
-    U, S, V = UN.svd(
+    U, S, V, error = UN.svd(
         list(range(0,halfN)) + list(range(N,3*halfN)),
         list(range(halfN,N)) + list(range(3*halfN,2*N)),
-        eps=pars["complexion_eps"], chis=pars["complexion_chis"]
+        eps=pars["complexion_eps"], chis=pars["complexion_chis"],
+        return_rel_err=True
     )
 
     HM = build_qham_open(ham, M)
@@ -314,17 +339,17 @@ def build_complexion(ham, pars, **kwargs):
     Uindices = list(range(1,N+1)) + [-1]
     UMindices = (
         list(range(1,halfN+1))
-        + [-i for i in range(2,2+spacestep_ceil)] + list(range(N+1,3*halfN+1))
+        + [-i for i in range(2,2+spacestep)] + list(range(N+1,3*halfN+1))
         + list(range(halfN+1,N+1))
-        + [-i for i in range(3+spacestep_ceil,3+spacestep_ceil*2)]
+        + [-i for i in range(3+spacestep,3+spacestep*2)]
         + list(range(3*halfN+1,2*N+1))
     )
-    Vindices = [-2-spacestep_ceil] + list(range(N+1,2*N+1))
+    Vindices = [-2-spacestep] + list(range(N+1,2*N+1))
     complexion = ncon((U.conjugate(), UM, V.conjugate()),
                       (Uindices, UMindices, Vindices))
     complexion = complexion.join_indices(
-        list(range(1,1+spacestep_ceil)),
-        list(range(2+spacestep_ceil,2+2*spacestep_ceil)),
+        list(range(1,1+spacestep)),
+        list(range(2+spacestep,2+2*spacestep)),
         dirs=[1,-1]
     )
     try:
@@ -337,7 +362,8 @@ def build_complexion(ham, pars, **kwargs):
     complexion = complexion.multiply_diag(S_isqrt, 2, direction="right")
     shp = type(complexion).flatten_shape(complexion.shape)
     if pars["verbosity"] > 0:
-        logging.info("Built complexion with shape {}".format(shp))
+        logging.info("Built complexion with shape {}, error {}"
+                     .format(shp, error))
     return complexion
 
 
