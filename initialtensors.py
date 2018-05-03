@@ -248,6 +248,7 @@ def qising_ham(pars):
            + 4/np.pi*ncon((eye2, eye2), ([-1,-11], [-2,-12]))
            )/2
     dim, qim = [1,1], [0,1]
+    # TODO What's the purpose of the check of the model?
     if pars["symmetry_tensors"] and pars["model"] == "qising":
         tensor_cls = TensorZ2
     else:
@@ -263,6 +264,7 @@ def tricrit_perturbation_ham(pars):
            + ncon((sigma('x'), sigma('x'), sigma('z')),
                   ([-1,-11], [-2,-12], [-3,-13])))
     dim, qim = [1,1], [0,1]
+    # TODO What's the purpose of the check of the model?
     if pars["symmetry_tensors"] and pars["model"] == "qising":
         tensor_cls = TensorZ2
     else:

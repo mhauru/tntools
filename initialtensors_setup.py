@@ -107,19 +107,19 @@ parinfo = {
     "h_trans": {
         "default": 1.0,
         "idfunc": lambda dataname, pars: (
-            pars["model"] in {"complexion_qising", "complexion_qising_tricrit"}
+            "qising" in pars["model"]
         )
     },
     "h_long": {
         "default": 0.0,
         "idfunc": lambda dataname, pars: (
-            pars["model"] in {"complexion_qising", "complexion_qising_tricrit"}
+            "qising" in pars["model"]
         )
     },
     "tricrit_perturbation_factor": {
         "default": 0.1,
         "idfunc": lambda dataname, pars: (
-            pars["model"] in {"complexion_qising_tricrit"}
+            "qising_tricrit" in pars["model"]
         )
     },
 
