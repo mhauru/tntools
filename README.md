@@ -25,7 +25,7 @@ It also generates any prerequisite data necessary (such as the other tensors in
 the same MERA).
 
 `ncon_sparseeig.py`
-A module that implements too user-facing functions: `ncon_sparseeig` and
+A module that implements two user-facing functions: `ncon_sparseeig` and
 `ncon_sparsesvd`. They provide a convenient interface, similar to that of the
 `ncon` package, for doing eigenvalue and singular value decompositions of tensor
 networks using power methods (from `scipy.sparse.linalg`), without ever
@@ -45,7 +45,7 @@ A module that produces initial tensors for various lattice models in 2D and 3D,
 that can be used to write down the partition function of the model. Used as
 starting points for many tensor network algorithms.
 
-`initialtensors.py`
+`initialtensors_setup.py`
 A module for interfacing `initialtensors.py` with `datadispenser`.
 
 `modeldata.py`
