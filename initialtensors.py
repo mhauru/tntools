@@ -85,6 +85,10 @@ def get_initial_tensor(pars, **kwargs):
         ham = get_ham(pars, model="qising_tricrit")
         complexion = build_complexion(ham, pars)
         return complexion
+    elif model_name == "complexion_sq_qising":
+        ham = get_ham(pars, model="qising")
+        complexion = build_complexion(ham, pars, square_hamiltonian=True)
+        return complexion
     else:
         ham = hamiltonians[model_name](pars)
         boltz = np.exp(-pars["beta"]*ham)
@@ -311,7 +315,7 @@ def exp_op(A):
     return EA
 
 
-def build_complexion(ham, pars, **kwargs):
+def build_complexion(ham, pars, square_hamiltonian=False, **kwargs):
     if kwargs:
         pars = pars.copy()
         pars.update(kwargs)
@@ -325,6 +329,10 @@ def build_complexion(ham, pars, **kwargs):
     unit = pars["complexion_step_direction"]
 
     HN = build_qham_open(ham, N)
+    if square_hamiltonian:
+        inds1 = [-i for i in range(1,N+1)] + [i for i in range(1,N+1)]
+        inds2 = [i for i in range(1,N+1)] + [-i for i in range(N+1,2*N+1)]
+        HN = ncon((HN, HN), (inds1, inds2))
 
     UN = exp_op(unit*timestep*HN)
 
@@ -336,6 +344,10 @@ def build_complexion(ham, pars, **kwargs):
     )
 
     HM = build_qham_open(ham, M)
+    if square_hamiltonian:
+        inds1 = [-i for i in range(1,M+1)] + [i for i in range(1,M+1)]
+        inds2 = [i for i in range(1,M+1)] + [-i for i in range(M+1,2*M+1)]
+        HM = ncon((HM, HM), (inds1, inds2))
     UM = exp_op(unit*timestep*HM)
 
     Uindices = list(range(1,N+1)) + [-1]
@@ -562,7 +574,9 @@ def get_initial_impurity(pars, legs=(3,), factor=3, **kwargs):
     # clashes with how 2D ising and potts initial tensors are generated.
     if not pars["symmetry_tensors"]:
         impurity_matrix = Tensor.from_ndarray(impurity_matrix.to_ndarray())
-    impurity_matrix *= -1
+    # TODO This was commented in before 2019-09-06. Why? It's clearly wrong
+    # for 3D Ising U-impurity and id-impurity.
+    #impurity_matrix *= -1
     A_impure = 0
     if 0 in legs:
         A_impure += ncon((A_pure, impurity_matrix),
@@ -582,7 +596,9 @@ def get_initial_impurity(pars, legs=(3,), factor=3, **kwargs):
     if 5 in legs:
         A_impure += ncon((A_pure, impurity_matrix.transpose()),
                          ([-1,-2,-3,-4,-5,6], [6,-6]))
-    A_impure *= factor
+    # TODO This was commented in before 2019-09-06. Why? It's clearly wrong
+    # for 3D Ising U-impurity and id-impurity.
+    #A_impure *= factor  
     return A_impure
 
 
