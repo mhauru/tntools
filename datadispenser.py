@@ -6,8 +6,6 @@ import os
 from . import multilineformatter
 from .pact import Pact
 
-np.set_printoptions(precision=7)
-
 """ Datadispenser is a module that can run various algorithms that take
 different parameters and generate data, and store that data on the disk.
 The goal is a user experience we one just tells datadispenser "I want
