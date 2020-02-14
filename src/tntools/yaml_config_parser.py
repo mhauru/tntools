@@ -34,7 +34,7 @@ def parse_argv(argv):
     if args.yaml:
         for line in args.yaml:
             yamlstr += "\n{}".format(line)
-    pars = yaml.load(yamlstr, Loader=yaml.FullLoader)
+    pars = yaml.load(yamlstr, Loader=yaml.UnsafeLoader)
     if pars is None:
         pars = dict()
     return pars
