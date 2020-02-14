@@ -24,4 +24,5 @@ setuptools.setup(
     keywords=["tensor networks"],
     install_requires=["scipy>=1.0.0", "pyyaml", "abeliantensors", "ncon"],
     python_requires=">=3.6",
+    package_data={"tntools": ["logging_default.conf"]},
 )
