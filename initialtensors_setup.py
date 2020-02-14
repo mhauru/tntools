@@ -2,7 +2,7 @@
 
 import numpy as np
 from . import initialtensors
-from tensors import TensorCommon
+from abeliantensors import TensorCommon
 from ncon import ncon
 
 version = 1.0

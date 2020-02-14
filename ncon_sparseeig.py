@@ -1,7 +1,7 @@
 """A module that allows doing eigenvalue and singular value decompositions of
 tensor networks, using an interface similar to ncon, without ever contractng
-the full network. Meant to be used with the tensors package that implements
-tensors with internal abelian symmetries.
+the full network. Meant to be used with the abeliantensors package that
+implements tensors with internal abelian symmetries.
 
 In other words, there's a common situation where one wants to implement a
 function that maps a vector v to v contracted with some tensor network, with
@@ -19,8 +19,8 @@ import itertools as itt
 import functools as fct
 import scipy.sparse.linalg as spsla
 from ncon import ncon
-from tensors import AbelianTensor
-from tensors import Tensor
+from abeliantensors import AbelianTensor
+from abeliantensors import Tensor
 
 
 # TODO: This module could use cleaning up and documenting. If I recall

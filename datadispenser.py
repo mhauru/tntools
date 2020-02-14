@@ -67,7 +67,7 @@ signature:
 get_data(db, dataname, pars, return_pars=False, **kwargs)
 The first argument is a path to a database, i.e., a folder in which the data is
 kept. return_pars specifies whether, with the data, the final pars that has
-been updated with default values, is to be returned.  **kwargs can be used to
+been updated with default values, is to be returned. **kwargs can be used to
 provide values that override those in pars.
 
 A user may also want to call the function

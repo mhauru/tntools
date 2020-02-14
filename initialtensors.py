@@ -1,5 +1,5 @@
 """Module for getting the initial tensors for different models.  Uses the
-tensors package.
+abeliantensors package.
 
 The user is expected to call the function get_initial_tensor with a dictionary
 as an argument that holds the necessary parameters, including "model" and
@@ -23,8 +23,8 @@ import itertools as itt
 import scipy.linalg as spla
 import logging
 from ncon import ncon
-from tensors import Tensor
-from tensors import TensorZ2, TensorZ3, TensorU1
+from abeliantensors import Tensor
+from abeliantensors import TensorZ2, TensorZ3, TensorU1
 
 # TODO: The 2D part is acceptable, but the 3D stuff is a big ad hoc mess. Also,
 # everything needs to be documented.
