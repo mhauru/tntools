@@ -13,10 +13,15 @@ The ones most useful to others would be
 
 The level of documentation and code beauty varies. `datadispenser` is pretty
 decent, `ncon_sparseeig` intimidates even me. The tools here rely on the
-`tensors` (https://github.com/mhauru/tensors) and `ncon`
-(https://github.com/mhauru/ncon) packages.
+[abeliantensors](https://github.com/mhauru/abeliantensors) and
+[ncon](https://github.com/mhauru/ncon) packages.
 
-### The files
+## Installation
+```
+pip install --user git+https://github.com/mhauru/tntools
+```
+
+## The files
 `pact.py`
 A module for storing data on the disk, such that each piece of data is uniquely
 identified by a name for the type of data, and a dictionary of parameters. For
@@ -43,9 +48,9 @@ networks using power methods (from `scipy.sparse.linalg`), without ever
 contracting the full network.
 
 `multilineformatter.py`
-A formatter class for the Python `logging` module
-(https://docs.python.org/3/library/logging.html)
-that formats multiline messages nicely.
+A formatter class for the Python
+[logging](https://docs.python.org/3/library/logging.html) module that formats
+multiline messages nicely.
 
 `logging_default.conf`
 A default configuration for the Python logging module that for instance uses
@@ -64,7 +69,7 @@ A module that provides exact data for some solvable lattice models, such as
 exact free energies and CFT data. Handy for benchmarking.
 
 `yaml_config_parser.py`
-A module for reading in parameters for various programs in the YAML format
-(http://yaml.org/). Supports both `.yaml` files as configuration files, and
-appending/overriding parameters using command line arguments.
+A module for reading in parameters for various programs in the
+[YAML](http://yaml.org/) format. Supports both `.yaml` files as configuration
+files, and appending/overriding parameters using command line arguments.
 
